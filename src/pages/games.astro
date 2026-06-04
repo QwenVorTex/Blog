@@ -5,6 +5,10 @@ import { getGameCollection } from '@/lib/media';
 
 const gameData = getGameCollection();
 const totalCount = gameData.length;
+const doneCount = gameData.filter((g) => g.collectionType === '玩过').length;
+const doingCount = gameData.filter((g) => g.collectionType === '在玩').length;
+const totalScore = gameData.reduce((sum, g) => sum + g.myRate, 0);
+const ratedCount = gameData.filter((g) => g.myRate > 0).length;
 ---
 
 <BaseLayout title="游戏" description="TorQuen 玩过的游戏">
@@ -15,14 +19,20 @@ const totalCount = gameData.length;
         <h1 class="text-display anim-enter">游戏</h1>
         <p class="media-page__stats anim-enter anim-delay-1">
           共 <strong>{totalCount}</strong> 款
+          {ratedCount > 0 && <> · 均分 {(totalScore / ratedCount).toFixed(1)}</>}
         </p>
         <p class="media-page__intro anim-enter anim-delay-2">好游戏确实有很多，我也确实没多少时间玩它们了，sad。</p>
       </header>
 
       <SortControls target="#games-grid" options={[
-        { value: 'default', label: '默认' },
-        { value: 'alpha',   label: '首字母' },
-        { value: 'date',    label: '年代' },
+        { value: 'default', label: '时间' },
+        { value: 'alpha', label: '首字母' },
+        { value: 'date', label: '年代' },
+        { value: 'score', label: '评分' },
+      ]} filters={[
+        { value: '玩过', label: '玩过' },
+        { value: '在玩', label: '在玩' },
+        { value: '想玩', label: '想玩' },
       ]} />
 
       <div class="media-grid" id="games-grid">
@@ -33,18 +43,51 @@ const totalCount = gameData.length;
             rel="noopener noreferrer"
             class="media-card scroll-reveal"
             data-sort-name={game.label}
-            data-sort-date={game.year}
+            data-sort-date={game.date || game.year}
+            data-sort-score={game.myRate || game.score || 0}
+            data-sort-status={game.collectionType}
           >
             <div class="media-card__cover" aria-hidden="true">
-              <div class="media-card__fallback">{game.name.charAt(0)}</div>
+              {game.cover ? (
+                <img
+                  src={game.cover}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  class="media-card__img"
+                />
+              ) : (
+                <div class="media-card__fallback">{game.name.charAt(0)}</div>
+              )}
             </div>
             <div class="media-card__body">
-              <h4 class="media-card__name">{game.name}</h4>
-              {game.label !== game.name && <p class="media-card__label">{game.label}</p>}
+              <h4 class="media-card__name">{game.nameCn || game.name}</h4>
+              {game.nameCn && game.name !== game.nameCn && (
+                <p class="media-card__label">{game.name}</p>
+              )}
               <div class="media-card__meta">
-                {game.year && <span class="media-card__year">{game.year}</span>}
-                <span class="media-card__score">Steam 搜索</span>
+                <span class="media-card__year">
+                  {game.year}
+                  {game.collectionType && (
+                    <span class="media-card__status"> · {game.collectionType}</span>
+                  )}
+                </span>
+                <span class="media-card__scores">
+                  {game.myRate > 0 && (
+                    <span class="media-card__my-rate">★{game.myRate}</span>
+                  )}
+                  {game.score > 0 && (
+                    <span class="media-card__bgm-score">{game.score}</span>
+                  )}
+                </span>
               </div>
+              {game.tags.length > 0 && (
+                <div class="media-card__tags">
+                  {game.tags.slice(0, 3).map((tag) => (
+                    <span class="media-card__tag">{tag}</span>
+                  ))}
+                </div>
+              )}
             </div>
           </a>
         ))}
@@ -116,6 +159,14 @@ const totalCount = gameData.length;
     aspect-ratio: 16 / 10;
     border-bottom: var(--border-thick);
     background: linear-gradient(135deg, var(--color-link) 0%, var(--color-link) 50%, var(--color-base) 50%, var(--color-base) 100%);
+    overflow: hidden;
+  }
+
+  .media-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .media-card__fallback {
@@ -137,6 +188,7 @@ const totalCount = gameData.length;
     font-size: var(--text-sm);
     font-weight: 700;
     margin: 0 0 var(--space-2);
+    line-height: 1.4;
   }
 
   .media-card__label {
@@ -157,8 +209,40 @@ const totalCount = gameData.length;
     color: var(--color-text-muted);
   }
 
-  .media-card__score {
+  .media-card__status {
+    color: var(--color-text-muted);
+  }
+
+  .media-card__scores {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .media-card__my-rate {
     color: var(--color-action);
+    font-weight: 800;
+  }
+
+  .media-card__bgm-score {
+    color: var(--color-link);
+    font-weight: 600;
+  }
+
+  .media-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .media-card__tag {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    padding: 1px var(--space-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    line-height: 1.6;
   }
 
   @media (max-width: 768px) {

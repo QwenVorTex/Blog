@@ -1,42 +1,86 @@
 ---
 /**
- * SortControls — 粗野主义风格的排序切换按钮组
- * 在客户端通过 JS 对 data-sort-container 中的子元素排序
+ * SortControls — 粗野主义风格的排序 + 筛选 + 搜索控件
+ * 客户端：状态筛选 + 搜索过滤 + 排序 + 正反序切换
  */
 interface Props {
-  /** 排序容器的 CSS 选择器 */
   target: string;
-  /** 可选排序方式 */
   options?: Array<{ value: string; label: string }>;
+  filters?: Array<{ value: string; label: string }>;
 }
 
 const { target, options = [
   { value: 'default', label: '默认' },
   { value: 'alpha',   label: '首字母' },
   { value: 'date',    label: '时间' },
-] } = Astro.props;
+], filters = [] } = Astro.props;
 ---
 
 <div class="sort-controls scroll-reveal" data-sort-target={target}>
-  <span class="sort-controls__label">排序</span>
-  <div class="sort-controls__btns">
-    {options.map((opt, i) => (
-      <button
-        class:list={['sort-controls__btn', { 'is-active': i === 0 }]}
-        data-sort-value={opt.value}
-      >
-        {opt.label}
-      </button>
-    ))}
+  {filters.length > 0 && (
+    <div class="sort-controls__row">
+      <span class="sort-controls__label">筛选</span>
+      <div class="sort-controls__btns">
+        <button
+          class="sort-controls__btn is-active"
+          data-filter-value=""
+        >
+          全部
+        </button>
+        {filters.map((f) => (
+          <button
+            class="sort-controls__btn"
+            data-filter-value={f.value}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+  <div class="sort-controls__row">
+    <span class="sort-controls__label">排序</span>
+    <div class="sort-controls__btns">
+      {options.map((opt, i) => (
+        <button
+          class:list={['sort-controls__btn', { 'is-active': i === 0 }]}
+          data-sort-value={opt.value}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+    <button
+      class="sort-controls__btn sort-controls__order"
+      data-sort-order="desc"
+      title="切换排序方向"
+      type="button"
+    >
+      ↓
+    </button>
+  </div>
+  <div class="sort-controls__search-row">
+    <input
+      class="sort-controls__search"
+      type="text"
+      placeholder="搜索…"
+      data-sort-search
+      aria-label="搜索条目"
+    />
+    <span class="sort-controls__count" data-sort-count></span>
   </div>
 </div>
 
 <style>
   .sort-controls {
+    margin-bottom: var(--space-8);
+  }
+
+  .sort-controls__row {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-3);
   }
 
   .sort-controls__label {
@@ -46,6 +90,7 @@ const { target, options = [
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
+    flex-shrink: 0;
   }
 
   .sort-controls__btns {
@@ -96,9 +141,59 @@ const { target, options = [
     box-shadow: 2px 2px 0px 0px var(--color-border);
   }
 
+  .sort-controls__order {
+    min-width: 2.2rem;
+    text-align: center;
+    font-size: var(--text-sm);
+  }
+
+  .sort-controls__order[data-sort-order="asc"] {
+    color: var(--color-action);
+  }
+
+  .sort-controls__search-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .sort-controls__search {
+    flex: 1;
+    max-width: 320px;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+    border: var(--border-thick);
+    color: var(--color-text);
+    outline: none;
+    transition: transform var(--dur-instant) var(--steps-micro),
+                box-shadow var(--dur-instant) var(--steps-micro);
+  }
+
+  .sort-controls__search:focus {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .sort-controls__search::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .sort-controls__count {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
   @media (max-width: 768px) {
-    .sort-controls {
+    .sort-controls__row {
       flex-wrap: wrap;
+    }
+
+    .sort-controls__search {
+      max-width: 100%;
     }
   }
 </style>
@@ -114,56 +209,133 @@ const { target, options = [
       const container = document.querySelector<HTMLElement>(targetSelector);
       if (!container) return;
 
-      // Save original order
-      const items = Array.from(container.children) as HTMLElement[];
-      items.forEach((el, i) => el.dataset.sortOriginal = String(i));
+      const allItems = Array.from(container.children) as HTMLElement[];
+      allItems.forEach((el, i) => el.dataset.sortOriginal = String(i));
 
-      const buttons = ctrl.querySelectorAll<HTMLButtonElement>('.sort-controls__btn');
+      const sortButtons = ctrl.querySelectorAll<HTMLButtonElement>('.sort-controls__btn[data-sort-value]');
+      const filterButtons = ctrl.querySelectorAll<HTMLButtonElement>('.sort-controls__btn[data-filter-value]');
+      const orderBtn = ctrl.querySelector<HTMLButtonElement>('.sort-controls__order');
+      const searchInput = ctrl.querySelector<HTMLInputElement>('.sort-controls__search');
+      const countEl = ctrl.querySelector<HTMLElement>('.sort-controls__count');
 
-      buttons.forEach((btn) => {
+      let currentMode = 'default';
+      let ascending = false;
+      let searchQuery = '';
+      let activeFilter = '';
+
+      function getEffectiveOrder() {
+        const defaultAsc = currentMode === 'alpha';
+        return ascending ? !defaultAsc : defaultAsc;
+      }
+
+      function updateCount(visible: number, total: number) {
+        if (countEl) {
+          countEl.textContent = visible === total ? `${total} 项` : `${visible} / ${total}`;
+        }
+      }
+
+      function applySortAndFilter() {
+        const query = searchQuery.toLowerCase();
+
+        // 过滤：搜索 + 状态
+        let visibleCount = 0;
+        allItems.forEach((el) => {
+          const name = (el.dataset.sortName || '').toLowerCase();
+          const status = el.dataset.sortStatus || '';
+          const nameMatch = !query || name.includes(query);
+          const statusMatch = !activeFilter || status === activeFilter;
+          const visible = nameMatch && statusMatch;
+          el.style.display = visible ? '' : 'none';
+          if (visible) visibleCount++;
+        });
+
+        // 排序
+        const visibleItems = allItems.filter((el) => el.style.display !== 'none');
+        const hiddenItems = allItems.filter((el) => el.style.display === 'none');
+        const isAsc = getEffectiveOrder();
+
+        let sorted: HTMLElement[];
+
+        switch (currentMode) {
+          case 'alpha':
+            sorted = [...visibleItems].sort((a, b) => {
+              const cmp = (a.dataset.sortName || '').toLowerCase().localeCompare(
+                (b.dataset.sortName || '').toLowerCase(), 'zh-CN'
+              );
+              return isAsc ? cmp : -cmp;
+            });
+            break;
+
+          case 'date':
+            sorted = [...visibleItems].sort((a, b) => {
+              const cmp = (a.dataset.sortDate || '0').localeCompare(b.dataset.sortDate || '0');
+              return isAsc ? cmp : -cmp;
+            });
+            break;
+
+          case 'score':
+            sorted = [...visibleItems].sort((a, b) => {
+              const cmp = (Number(a.dataset.sortScore) || 0) - (Number(b.dataset.sortScore) || 0);
+              return isAsc ? cmp : -cmp;
+            });
+            break;
+
+          default:
+            sorted = [...visibleItems].sort((a, b) => {
+              const cmp = Number(a.dataset.sortOriginal) - Number(b.dataset.sortOriginal);
+              return isAsc ? cmp : -cmp;
+            });
+            break;
+        }
+
+        hiddenItems.forEach((el) => container.appendChild(el));
+        sorted.forEach((el) => container.appendChild(el));
+
+        updateCount(visibleCount, allItems.length);
+      }
+
+      // 排序按钮
+      sortButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          // Update active state
-          buttons.forEach((b) => b.classList.remove('is-active'));
+          sortButtons.forEach((b) => b.classList.remove('is-active'));
           btn.classList.add('is-active');
-
-          const mode = btn.dataset.sortValue;
-          const currentItems = Array.from(container.children) as HTMLElement[];
-
-          let sorted: HTMLElement[];
-
-          switch (mode) {
-            case 'alpha':
-              sorted = [...currentItems].sort((a, b) => {
-                const nameA = (a.dataset.sortName || '').toLowerCase();
-                const nameB = (b.dataset.sortName || '').toLowerCase();
-                return nameA.localeCompare(nameB, 'zh-CN');
-              });
-              break;
-
-            case 'date':
-              sorted = [...currentItems].sort((a, b) => {
-                const dateA = a.dataset.sortDate || '0';
-                const dateB = b.dataset.sortDate || '0';
-                return dateA.localeCompare(dateB);
-              });
-              break;
-
-            default:
-              // Restore original order
-              sorted = [...currentItems].sort((a, b) => {
-                return Number(a.dataset.sortOriginal) - Number(b.dataset.sortOriginal);
-              });
-              break;
-          }
-
-          // Re-append in sorted order (CSS transition would break grids, so just swap)
-          sorted.forEach((el) => container.appendChild(el));
+          currentMode = btn.dataset.sortValue || 'default';
+          applySortAndFilter();
         });
       });
+
+      // 筛选按钮
+      filterButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach((b) => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          activeFilter = btn.dataset.filterValue || '';
+          applySortAndFilter();
+        });
+      });
+
+      // 正反序
+      if (orderBtn) {
+        orderBtn.addEventListener('click', () => {
+          ascending = !ascending;
+          orderBtn.dataset.sortOrder = ascending ? 'asc' : 'desc';
+          orderBtn.textContent = ascending ? '↑' : '↓';
+          applySortAndFilter();
+        });
+      }
+
+      // 搜索
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          searchQuery = searchInput.value.trim();
+          applySortAndFilter();
+        });
+      }
+
+      updateCount(allItems.length, allItems.length);
     });
   }
 
-  // Run on initial load and Astro page transitions
   initSortControls();
   document.addEventListener('astro:after-swap', initSortControls);
 </script>

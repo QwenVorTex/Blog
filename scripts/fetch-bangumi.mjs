@@ -1,0 +1,167 @@
+/**
+ * fetch-bangumi.mjs
+ *
+ * 从 Bangumi API 拉取用户收藏数据（番剧 + 游戏），下载封面图到本地。
+ * 增量更新：已有条目跳过封面下载，JSON 仅在数据变化时覆写。
+ * 需要代理环境下运行（api.bgm.tv 在国内被墙）。
+ *
+ * 用法：node scripts/fetch-bangumi.mjs
+ */
+
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '..');
+
+const BANGUMI_USERNAME = 'qwenvortex';
+const API_BASE = 'https://api.bgm.tv';
+const USER_AGENT = 'TorQuenBlog/1.0 (https://github.com/QwenVorTex/Blog)';
+const PER_PAGE = 50;
+
+const SUBJECT_TYPE = { anime: 2, games: 4 };
+const COLLECTION_TYPE = { 1: 'wish', 2: 'done', 3: 'doing', 4: 'on_hold', 5: 'dropped' };
+
+async function fetchJSON(path) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
+async function fetchAllCollections(type) {
+  const subjectType = SUBJECT_TYPE[type];
+  const all = [];
+  let offset = 0;
+
+  const first = await fetchJSON(
+    `/v0/users/${BANGUMI_USERNAME}/collections?subject_type=${subjectType}&limit=${PER_PAGE}&offset=0`
+  );
+  const total = first.total ?? 0;
+  console.log(`[${type}] total: ${total}`);
+  all.push(...(first.data ?? []));
+
+  while (all.length < total) {
+    offset += PER_PAGE;
+    const page = await fetchJSON(
+      `/v0/users/${BANGUMI_USERNAME}/collections?subject_type=${subjectType}&limit=${PER_PAGE}&offset=${offset}`
+    );
+    all.push(...(page.data ?? []));
+    console.log(`  fetched ${all.length}/${total}`);
+  }
+
+  return all;
+}
+
+async function downloadImage(imageUrl, destPath) {
+  if (existsSync(destPath)) return false;
+  try {
+    const res = await fetch(imageUrl, {
+      headers: { 'User-Agent': USER_AGENT, Referer: 'https://bgm.tv/' },
+    });
+    if (!res.ok) {
+      console.warn(`  image download failed (${res.status}): ${imageUrl}`);
+      return false;
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    writeFileSync(destPath, buffer);
+    return true;
+  } catch (e) {
+    console.warn(`  image download error: ${imageUrl} — ${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 加载已有 JSON 数据，构建 bangumiId → updatedAt 索引
+ */
+function loadExistingIndex(type) {
+  const jsonPath = resolve(ROOT, 'src', 'data', `bangumi-${type}.json`);
+  if (!existsSync(jsonPath)) return new Map();
+  try {
+    const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    return new Map(data.map((item) => [item.bangumiId, item.updatedAt]));
+  } catch {
+    return new Map();
+  }
+}
+
+async function processCollections(items, type) {
+  const imageDir = resolve(ROOT, 'public', 'bangumi', type);
+  mkdirSync(imageDir, { recursive: true });
+
+  const existingIndex = loadExistingIndex(type);
+  const results = [];
+  let newCount = 0;
+  let updatedCount = 0;
+
+  for (const item of items) {
+    const subj = item.subject ?? {};
+    const subjectId = subj.id ?? item.subject_id;
+    const images = subj.images ?? {};
+    const coverUrl = images.large || images.medium || images.common || images.small || '';
+    const ext = coverUrl.match(/\.(jpg|jpeg|png|webp|gif)(\?|$)/i)?.[1] || 'jpg';
+
+    const updatedAt = item.updated_at ?? '';
+    const prevUpdated = existingIndex.get(subjectId);
+
+    // 判断是否需要下载封面（新条目或 updatedAt 变化）
+    if (coverUrl) {
+      const destPath = resolve(imageDir, `${subjectId}.${ext}`);
+      const downloaded = await downloadImage(coverUrl, destPath);
+      if (downloaded) newCount++;
+    }
+
+    if (prevUpdated === undefined) {
+      newCount++;
+    } else if (prevUpdated !== updatedAt) {
+      updatedCount++;
+    }
+
+    results.push({
+      bangumiId: subjectId,
+      name: subj.name ?? '',
+      name_cn: subj.name_cn ?? '',
+      date: subj.date ?? '',
+      summary: (subj.short_summary ?? '').slice(0, 120),
+      score: subj.score ?? 0,
+      rank: subj.rank ?? 0,
+      tags: (subj.tags ?? []).slice(0, 5).map((t) => t.name ?? t),
+      cover: coverUrl ? `/bangumi/${type}/${subjectId}.${ext}` : '',
+      collectionType: COLLECTION_TYPE[item.type] ?? 'unknown',
+      myRate: item.rate ?? 0,
+      epStatus: item.ep_status ?? 0,
+      volStatus: item.vol_status ?? 0,
+      updatedAt,
+    });
+  }
+
+  results.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+  console.log(`  new: ${newCount}, updated: ${updatedCount}, total: ${results.length}`);
+
+  return results;
+}
+
+async function main() {
+  console.log(`Fetching Bangumi collections for user: ${BANGUMI_USERNAME}\n`);
+
+  for (const type of ['anime', 'games']) {
+    console.log(`\n=== ${type} ===`);
+    const items = await fetchAllCollections(type);
+    const data = await processCollections(items, type);
+
+    const outPath = resolve(ROOT, 'src', 'data', `bangumi-${type}.json`);
+    writeFileSync(outPath, JSON.stringify(data, null, 2), 'utf-8');
+    console.log(`Saved → ${outPath}`);
+  }
+
+  console.log('\nDone.');
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

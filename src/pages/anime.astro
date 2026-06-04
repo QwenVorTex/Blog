@@ -5,6 +5,10 @@ import { getAnimeCollection } from '@/lib/media';
 
 const animeData = getAnimeCollection();
 const totalCount = animeData.length;
+const doneCount = animeData.filter((a) => a.collectionType === '看过').length;
+const doingCount = animeData.filter((a) => a.collectionType === '在看').length;
+const totalScore = animeData.reduce((sum, a) => sum + a.myRate, 0);
+const ratedCount = animeData.filter((a) => a.myRate > 0).length;
 ---
 
 <BaseLayout title="追番" description="TorQuen 的追番列表">
@@ -14,15 +18,21 @@ const totalCount = animeData.length;
         <span class="text-giant media-page__bg-text" aria-hidden="true">番</span>
         <h1 class="text-display anim-enter">追番</h1>
         <p class="media-page__stats anim-enter anim-delay-1">
-          共 <strong>{totalCount}</strong> 部
+          共 <strong>{totalCount}</strong> 部 · 看过 {doneCount} · 在看 {doingCount}
+          {ratedCount > 0 && <> · 均分 {(totalScore / ratedCount).toFixed(1)}</>}
         </p>
-        <p class="media-page__intro anim-enter anim-delay-2">一些看过后还记得的，好多都忘了。</p>
+        <p class="media-page__intro anim-enter anim-delay-2">数据来自 Bangumi，一些看过后还记得的，好多都忘了。</p>
       </header>
 
       <SortControls target="#anime-grid" options={[
-        { value: 'default', label: '默认' },
+        { value: 'default', label: '时间' },
         { value: 'alpha', label: '首字母' },
         { value: 'date', label: '年代' },
+        { value: 'score', label: '评分' },
+      ]} filters={[
+        { value: '看过', label: '看过' },
+        { value: '在看', label: '在看' },
+        { value: '想看', label: '想看' },
       ]} />
 
       <div class="media-grid" id="anime-grid">
@@ -33,18 +43,51 @@ const totalCount = animeData.length;
             rel="noopener noreferrer"
             class="media-card scroll-reveal"
             data-sort-name={anime.label}
-            data-sort-date={anime.year}
+            data-sort-date={anime.date || anime.year}
+            data-sort-score={anime.myRate || anime.score || 0}
+            data-sort-status={anime.collectionType}
           >
             <div class="media-card__cover" aria-hidden="true">
-              <div class="media-card__fallback">{anime.name.charAt(0)}</div>
+              {anime.cover ? (
+                <img
+                  src={anime.cover}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  class="media-card__img"
+                />
+              ) : (
+                <div class="media-card__fallback">{anime.name.charAt(0)}</div>
+              )}
             </div>
             <div class="media-card__body">
-              <h4 class="media-card__name">{anime.name}</h4>
-              {anime.label !== anime.name && <p class="media-card__label">{anime.label}</p>}
+              <h4 class="media-card__name">{anime.nameCn || anime.name}</h4>
+              {anime.nameCn && anime.name !== anime.nameCn && (
+                <p class="media-card__label">{anime.name}</p>
+              )}
               <div class="media-card__meta">
-                {anime.year && <span class="media-card__year">{anime.year}</span>}
-                <span class="media-card__score">Bangumi 搜索</span>
+                <span class="media-card__year">
+                  {anime.year}
+                  {anime.collectionType && (
+                    <span class="media-card__status"> · {anime.collectionType}</span>
+                  )}
+                </span>
+                <span class="media-card__scores">
+                  {anime.myRate > 0 && (
+                    <span class="media-card__my-rate">★{anime.myRate}</span>
+                  )}
+                  {anime.score > 0 && (
+                    <span class="media-card__bgm-score">{anime.score}</span>
+                  )}
+                </span>
               </div>
+              {anime.tags.length > 0 && (
+                <div class="media-card__tags">
+                  {anime.tags.slice(0, 3).map((tag) => (
+                    <span class="media-card__tag">{tag}</span>
+                  ))}
+                </div>
+              )}
             </div>
           </a>
         ))}
@@ -116,6 +159,14 @@ const totalCount = animeData.length;
     aspect-ratio: 4 / 3;
     border-bottom: var(--border-thick);
     background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent) 50%, var(--color-base) 50%, var(--color-base) 100%);
+    overflow: hidden;
+  }
+
+  .media-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .media-card__fallback {
@@ -137,6 +188,7 @@ const totalCount = animeData.length;
     font-size: var(--text-sm);
     font-weight: 700;
     margin: 0 0 var(--space-2);
+    line-height: 1.4;
   }
 
   .media-card__label {
@@ -157,8 +209,40 @@ const totalCount = animeData.length;
     color: var(--color-text-muted);
   }
 
-  .media-card__score {
+  .media-card__status {
+    color: var(--color-text-muted);
+  }
+
+  .media-card__scores {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .media-card__my-rate {
     color: var(--color-action);
+    font-weight: 800;
+  }
+
+  .media-card__bgm-score {
+    color: var(--color-link);
+    font-weight: 600;
+  }
+
+  .media-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .media-card__tag {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    padding: 1px var(--space-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    line-height: 1.6;
   }
 
   @media (max-width: 768px) {
