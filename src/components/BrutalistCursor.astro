@@ -283,7 +283,6 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     window.__brutalistCursorReady = true;
     document.documentElement.classList.add('has-brutalist-cursor');
 
-    const FRAME_INTERVAL = 1000 / 16;
     const REACTOR_GRID = 30;
     const REACTOR_LIFE = 220;
     const REACTOR_COOLDOWN = 78;
@@ -313,15 +312,13 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     let mode = 'default';
     let zone = 'default';
     let rafId = 0;
-    let then = performance.now();
     let reactorIndex = 0;
     let lastReactorAt = 0;
     let lastSpawnX = targetX;
     let lastSpawnY = targetY;
     const reactorTimers = new WeakMap();
 
-    const quantize = (value, step) => Math.round(value / step) * step;
-    const stepTowards = (current, target, factor, step) => quantize(current + (target - current) * factor, step);
+    const lerp = (current, target, factor) => current + (target - current) * factor;
 
     const setVisibility = (nextVisible) => {
       visible = nextVisible;
@@ -384,8 +381,8 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
 
       const cell = cells[reactorIndex % cells.length];
       const offset = OFFSETS[reactorIndex % OFFSETS.length];
-      const snappedX = quantize(targetX + offset[0], REACTOR_GRID);
-      const snappedY = quantize(targetY + offset[1], REACTOR_GRID);
+      const snappedX = Math.round((targetX + offset[0]) / REACTOR_GRID) * REACTOR_GRID;
+      const snappedY = Math.round((targetY + offset[1]) / REACTOR_GRID) * REACTOR_GRID;
 
       reactorIndex += 1;
       lastReactorAt = now;
@@ -413,10 +410,6 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     const render = (now) => {
       rafId = window.requestAnimationFrame(render);
 
-      const elapsed = now - then;
-      if (elapsed < FRAME_INTERVAL) return;
-      then = now - (elapsed % FRAME_INTERVAL);
-
       const coreFactor =
         pressed
           ? 0.16
@@ -429,10 +422,10 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
                 : 0.28;
       const shadowFactor = pressed ? 0.08 : mode === 'card' ? 0.1 : 0.12;
 
-      coreX = stepTowards(coreX, targetX, coreFactor, 4);
-      coreY = stepTowards(coreY, targetY, coreFactor, 4);
-      shadowX = stepTowards(shadowX, targetX, shadowFactor, 8);
-      shadowY = stepTowards(shadowY, targetY, shadowFactor, 8);
+      coreX = lerp(coreX, targetX, coreFactor);
+      coreY = lerp(coreY, targetY, coreFactor);
+      shadowX = lerp(shadowX, targetX, shadowFactor);
+      shadowY = lerp(shadowY, targetY, shadowFactor);
 
       core.style.transform = `translate3d(${coreX}px, ${coreY}px, 0) translate(-50%, -50%)`;
       shadow.style.transform = `translate3d(${shadowX + 6}px, ${shadowY + 6}px, 0) translate(-50%, -50%)`;

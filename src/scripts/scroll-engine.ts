@@ -1,25 +1,18 @@
 /**
  * Neo-Brutalist Scroll Engine
- * 低帧率 (24 FPS) 滚动引擎 —— 时间与空间的双重离散化
+ * 平滑滚动引擎 —— 拦截 wheel 事件，保留键盘导航
  *
- * - 拦截页面 wheel 事件，制造轻度 stop-motion 感
+ * - 拦截页面 wheel 事件，用 lerp 插值实现平滑滚动
  * - 保留对原生滚动容器、输入区域和无障碍场景的尊重
- * - 用离散步长和低帧率重绘维持硬朗的滚动节奏
  */
 
 export function initScrollEngine() {
-  const TARGET_FPS = 24;
-  const FPS_INTERVAL = 1000 / TARGET_FPS;
   const SCROLL_SPEED = 0.96;
-  const SNAP_THRESHOLD = 1.5;
-  const LERP_FACTOR = 0.18;
-  const MIN_STEP = 1;
-  const MAX_STEP = 36;
-  const DISCRETE_STEP = 1;
+  const SNAP_THRESHOLD = 0.5;
+  const LERP_FACTOR = 0.12;
 
   let targetScrollY = 0;
   let currentScrollY = 0;
-  let then = performance.now();
   let rafId: number | null = null;
   let isEnabled = true;
   let isInternalScroll = false;
@@ -31,10 +24,6 @@ export function initScrollEngine() {
 
   function clamp(val: number, min: number, max: number) {
     return Math.min(Math.max(val, min), max);
-  }
-
-  function discretize(value: number, step: number = DISCRETE_STEP): number {
-    return Math.round(value / step) * step;
   }
 
   function findScrollableParent(target: EventTarget | null, deltaY: number) {
@@ -105,36 +94,15 @@ export function initScrollEngine() {
     targetScrollY = clamp(targetScrollY + delta, 0, getMaxScroll());
   }
 
-  function tick(now: number) {
+  function tick() {
     rafId = requestAnimationFrame(tick);
-
-    const elapsed = now - then;
-
-    if (elapsed < FPS_INTERVAL) return;
-
-    then = now - (elapsed % FPS_INTERVAL);
 
     const diff = targetScrollY - currentScrollY;
 
     if (Math.abs(diff) < SNAP_THRESHOLD) {
       currentScrollY = targetScrollY;
     } else {
-      let step = clamp(diff * LERP_FACTOR, -MAX_STEP, MAX_STEP);
-
-      if (Math.abs(step) < MIN_STEP) {
-        step = Math.sign(diff) * MIN_STEP;
-      }
-
-      const discreteStep = discretize(
-        step > 0 ? Math.ceil(step) : Math.floor(step)
-      );
-      const nextScrollY = currentScrollY + discreteStep;
-
-      if ((diff > 0 && nextScrollY > targetScrollY) || (diff < 0 && nextScrollY < targetScrollY)) {
-        currentScrollY = targetScrollY;
-      } else {
-        currentScrollY = nextScrollY;
-      }
+      currentScrollY += diff * LERP_FACTOR;
     }
 
     applyScroll(currentScrollY);
