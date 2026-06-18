@@ -99,7 +99,8 @@ const rotation = rotations[index % rotations.length];
 
   .post-card:hover {
     transform: rotate(0deg) translate(-4px, -4px);
-    box-shadow: 12px 12px 0px 0px var(--color-border);
+    box-shadow: 12px 12px 0px 0px var(--color-border),
+                6px 6px 0px 0px var(--card-accent);
     color: var(--color-text);
     text-decoration: none;
   }
@@ -110,7 +111,7 @@ const rotation = rotations[index % rotations.length];
   }
 
   .post-card__accent-bar {
-    height: 8px;
+    height: 10px;
     background: var(--card-accent);
   }
 
