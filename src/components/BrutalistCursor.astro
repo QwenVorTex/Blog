@@ -1,12 +1,5 @@
 ---
-const reactorCells = Array.from({ length: 12 }, (_, index) => index);
 ---
-
-<div class="cursor-reactor" id="cursor-reactor" aria-hidden="true">
-  {reactorCells.map((cell) => (
-    <span class="cursor-reactor__cell" data-reactor-cell data-index={cell}></span>
-  ))}
-</div>
 
 <div
   class="brutalist-cursor"
@@ -20,6 +13,10 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
   <div class="brutalist-cursor__core" id="cursor-core">
     <div class="brutalist-cursor__core-mark"></div>
   </div>
+</div>
+
+<div class="cursor-hud" id="cursor-hud" aria-hidden="true">
+  <span class="cursor-hud__text" id="cursor-hud-text"></span>
 </div>
 
 <style is:global>
@@ -47,66 +44,7 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     z-index: 1;
   }
 
-  .cursor-reactor {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: clip;
-  }
-
-  .cursor-reactor__cell {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 20px;
-    height: 20px;
-    border: var(--border-medium);
-    background: rgba(var(--color-accent-rgb), 0.16);
-    box-shadow: 4px 4px 0px 0px rgba(var(--color-border-rgb), 0.65);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.4);
-    transition:
-      opacity 0.18s var(--steps-small),
-      transform 0.18s var(--steps-small),
-      background-color var(--dur-instant) var(--steps-micro),
-      border-color var(--dur-instant) var(--steps-micro),
-      box-shadow var(--dur-fast) var(--steps-small);
-    will-change: transform, opacity;
-  }
-
-  .cursor-reactor__cell.is-active {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.08);
-  }
-
-  .cursor-reactor__cell[data-tone='link'] {
-    background: rgba(var(--color-link-rgb), 0.16);
-  }
-
-  .cursor-reactor__cell[data-tone='action'] {
-    background: rgba(var(--color-action-rgb), 0.15);
-  }
-
-  .cursor-reactor__cell[data-tone='neutral'] {
-    background: rgba(var(--color-border-rgb), 0.09);
-  }
-
-  .cursor-reactor__cell[data-kind='button'] {
-    width: 28px;
-    height: 28px;
-  }
-
-  .cursor-reactor__cell[data-kind='card'] {
-    width: 24px;
-    height: 24px;
-  }
-
-  .cursor-reactor__cell[data-kind='hero'] {
-    width: 26px;
-    height: 26px;
-  }
-
+  /* ── Core marker / stamp ── */
   .brutalist-cursor {
     position: fixed;
     inset: 0;
@@ -249,9 +187,63 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     box-shadow: 2px 2px 0px 0px var(--color-link);
   }
 
+  /* ── HUD positioning label (trail) ── */
+  .cursor-hud {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: var(--z-cursor);
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+    transition: opacity var(--dur-fast) var(--steps-small);
+  }
+
+  .cursor-hud.is-active {
+    opacity: 1;
+  }
+
+  .cursor-hud__text {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-thin);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+    transition:
+      background-color var(--dur-instant) var(--steps-micro),
+      color var(--dur-instant) var(--steps-micro),
+      box-shadow var(--dur-fast) var(--steps-small);
+  }
+
+  .cursor-hud[data-mode='link'] .cursor-hud__text {
+    background: var(--color-link);
+    color: var(--color-surface);
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+
+  .cursor-hud[data-mode='button'] .cursor-hud__text {
+    background: var(--color-action);
+    color: var(--color-surface);
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+
+  .cursor-hud[data-mode='card'] .cursor-hud__text {
+    background: var(--color-accent);
+    color: var(--color-border);
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+
   @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
-    .cursor-reactor,
-    .brutalist-cursor {
+    .brutalist-cursor,
+    .cursor-hud {
       display: none !important;
     }
   }
@@ -275,31 +267,17 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     const root = document.getElementById('brutalist-cursor');
     const core = document.getElementById('cursor-core');
     const shadow = document.getElementById('cursor-shadow');
-    const reactor = document.getElementById('cursor-reactor');
-    const cells = Array.from(document.querySelectorAll('[data-reactor-cell]'));
+    const hud = document.getElementById('cursor-hud');
+    const hudText = document.getElementById('cursor-hud-text');
 
-    if (!root || !core || !shadow || !reactor || cells.length === 0) return;
+    if (!root || !core || !shadow || !hud || !hudText) return;
 
     window.__brutalistCursorReady = true;
     document.documentElement.classList.add('has-brutalist-cursor');
 
-    const REACTOR_GRID = 30;
-    const REACTOR_LIFE = 220;
-    const REACTOR_COOLDOWN = 78;
-    const OFFSETS = [
-      [-30, -30],
-      [0, -30],
-      [30, -30],
-      [-30, 0],
-      [30, 0],
-      [-30, 30],
-      [0, 30],
-      [30, 30],
-      [-60, 0],
-      [60, 0],
-      [0, -60],
-      [0, 60],
-    ];
+    const HUD_OFFSET_X = 22;
+    const HUD_OFFSET_Y = 22;
+    const IDLE_TIMEOUT = 400;
 
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
@@ -307,25 +285,27 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     let coreY = targetY;
     let shadowX = targetX;
     let shadowY = targetY;
+    let hudX = targetX;
+    let hudY = targetY;
     let visible = false;
     let pressed = false;
     let mode = 'default';
     let zone = 'default';
     let rafId = 0;
-    let reactorIndex = 0;
-    let lastReactorAt = 0;
-    let lastSpawnX = targetX;
-    let lastSpawnY = targetY;
-    const reactorTimers = new WeakMap();
+    let lastLabel = '';
+    let idleTimer = 0;
 
-    const lerp = (current, target, factor) => current + (target - current) * factor;
+    const lerp = (current: number, target: number, factor: number) =>
+      current + (target - current) * factor;
 
-    const setVisibility = (nextVisible) => {
+    const setVisibility = (nextVisible: boolean) => {
       visible = nextVisible;
       root.classList.toggle('is-active', visible);
+      const hudVisible = visible && zone !== 'reading';
+      hud.classList.toggle('is-active', hudVisible);
     };
 
-    const resolveMode = (element) => {
+    const resolveMode = (element: Element | null) => {
       if (!element) return 'default';
       if (
         element.closest(
@@ -347,106 +327,73 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
       return 'default';
     };
 
-    const resolveZone = (element) => {
+    const resolveZone = (element: Element | null) => {
       if (!element) return 'default';
       if (element.closest('[data-cursor-zone="reading"]')) return 'reading';
       if (element.closest('[data-cursor-zone="hero"]')) return 'hero';
       return 'default';
     };
 
-    const resolveTone = () => {
-      if (mode === 'button') return 'action';
-      if (mode === 'card') return 'link';
-      if (zone === 'hero') return 'accent';
-      return 'neutral';
+    const resolveLabel = () => {
+      if (mode === 'link') return '->OPEN';
+      if (mode === 'button') return '->CLICK';
+      if (mode === 'card') return '->VIEW';
+      return `[x:${Math.round(targetX)} y:${Math.round(targetY)}]`;
     };
 
-    const resolveKind = () => {
-      if (mode === 'button') return 'button';
-      if (mode === 'card') return 'card';
-      if (zone === 'hero') return 'hero';
-      return 'default';
-    };
-
-    const maybeSpawnReactor = (now) => {
-      const deltaX = targetX - lastSpawnX;
-      const deltaY = targetY - lastSpawnY;
-      const distance = Math.hypot(deltaX, deltaY);
-
-      if (zone === 'reading') return;
-      if (mode === 'link') return;
-      if (mode === 'default' && zone !== 'hero') return;
-      if (distance < (mode === 'button' ? 18 : 24)) return;
-      if (now - lastReactorAt < REACTOR_COOLDOWN) return;
-
-      const cell = cells[reactorIndex % cells.length];
-      const offset = OFFSETS[reactorIndex % OFFSETS.length];
-      const snappedX = Math.round((targetX + offset[0]) / REACTOR_GRID) * REACTOR_GRID;
-      const snappedY = Math.round((targetY + offset[1]) / REACTOR_GRID) * REACTOR_GRID;
-
-      reactorIndex += 1;
-      lastReactorAt = now;
-      lastSpawnX = targetX;
-      lastSpawnY = targetY;
-
-      cell.dataset.tone = resolveTone();
-      cell.dataset.kind = resolveKind();
-      cell.style.left = `${snappedX}px`;
-      cell.style.top = `${snappedY}px`;
-      cell.classList.remove('is-active');
-      void cell.offsetWidth;
-      cell.classList.add('is-active');
-
-      const existingTimer = reactorTimers.get(cell);
-      if (existingTimer) window.clearTimeout(existingTimer);
-
-      const timer = window.setTimeout(() => {
-        cell.classList.remove('is-active');
-      }, REACTOR_LIFE);
-
-      reactorTimers.set(cell, timer);
-    };
-
-    const render = (now) => {
+    const render = () => {
       rafId = window.requestAnimationFrame(render);
 
-      const coreFactor =
-        pressed
-          ? 0.16
-          : mode === 'button'
-            ? 0.18
-            : mode === 'card'
-              ? 0.2
-              : mode === 'link'
-                ? 0.24
-                : 0.28;
+      const coreFactor = pressed
+        ? 0.16
+        : mode === 'button'
+          ? 0.18
+          : mode === 'card'
+            ? 0.2
+            : mode === 'link'
+              ? 0.24
+              : 0.28;
       const shadowFactor = pressed ? 0.08 : mode === 'card' ? 0.1 : 0.12;
+      const hudFactor = 0.14;
 
       coreX = lerp(coreX, targetX, coreFactor);
       coreY = lerp(coreY, targetY, coreFactor);
       shadowX = lerp(shadowX, targetX, shadowFactor);
       shadowY = lerp(shadowY, targetY, shadowFactor);
+      hudX = lerp(hudX, targetX, hudFactor);
+      hudY = lerp(hudY, targetY, hudFactor);
 
       core.style.transform = `translate3d(${coreX}px, ${coreY}px, 0) translate(-50%, -50%)`;
       shadow.style.transform = `translate3d(${shadowX + 6}px, ${shadowY + 6}px, 0) translate(-50%, -50%)`;
+      hud.style.transform = `translate3d(${hudX + HUD_OFFSET_X}px, ${hudY + HUD_OFFSET_Y}px, 0)`;
+
+      const label = resolveLabel();
+      if (label !== lastLabel) {
+        hudText.textContent = label;
+        lastLabel = label;
+      }
 
       root.dataset.mode = mode;
       root.dataset.zone = zone;
       root.dataset.pressed = String(pressed);
-
-      maybeSpawnReactor(now);
+      hud.dataset.mode = mode;
     };
 
-    const onPointerMove = (event) => {
+    const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
 
       targetX = event.clientX;
       targetY = event.clientY;
-      setVisibility(true);
 
       const target = event.target instanceof Element ? event.target : null;
       mode = resolveMode(target);
       zone = resolveZone(target);
+      setVisibility(true);
+
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        hud.classList.remove('is-active');
+      }, IDLE_TIMEOUT);
     };
 
     const onPointerDown = () => {
@@ -458,6 +405,7 @@ const reactorCells = Array.from({ length: 12 }, (_, index) => index);
     };
 
     const hideCursor = () => {
+      window.clearTimeout(idleTimer);
       setVisibility(false);
       pressed = false;
       mode = 'default';
