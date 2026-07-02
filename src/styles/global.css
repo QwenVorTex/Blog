@@ -2,7 +2,7 @@
    GLOBAL RESET & BASE STYLES
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 @import './variables.css';
 @import './typography.css';
@@ -169,3 +169,4 @@ hr {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-action);
 }
+

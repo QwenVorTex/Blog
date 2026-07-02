@@ -5,25 +5,28 @@
  */
 interface Props {
   target: string;
+  emptyTarget?: string;
   options?: Array<{ value: string; label: string }>;
   filters?: Array<{ value: string; label: string }>;
 }
 
-const { target, options = [
+const { target, emptyTarget, options = [
   { value: 'default', label: '默认' },
   { value: 'alpha',   label: '首字母' },
   { value: 'date',    label: '时间' },
 ], filters = [] } = Astro.props;
 ---
 
-<div class="sort-controls scroll-reveal" data-sort-target={target}>
+<div class="sort-controls scroll-reveal" data-sort-target={target} data-sort-empty-target={emptyTarget}>
   {filters.length > 0 && (
-    <div class="sort-controls__row">
+    <div class="sort-controls__row sort-controls__row--filters">
       <span class="sort-controls__label">筛选</span>
-      <div class="sort-controls__btns">
+      <div class="sort-controls__btns" role="group" aria-label="筛选条目状态">
         <button
           class="sort-controls__btn is-active"
           data-filter-value=""
+          type="button"
+          aria-pressed="true"
         >
           全部
         </button>
@@ -31,6 +34,8 @@ const { target, options = [
           <button
             class="sort-controls__btn"
             data-filter-value={f.value}
+            type="button"
+            aria-pressed="false"
           >
             {f.label}
           </button>
@@ -40,11 +45,13 @@ const { target, options = [
   )}
   <div class="sort-controls__row">
     <span class="sort-controls__label">排序</span>
-    <div class="sort-controls__btns">
+    <div class="sort-controls__btns" role="group" aria-label="排序方式">
       {options.map((opt, i) => (
         <button
           class:list={['sort-controls__btn', { 'is-active': i === 0 }]}
           data-sort-value={opt.value}
+          type="button"
+          aria-pressed={i === 0 ? 'true' : 'false'}
         >
           {opt.label}
         </button>
@@ -55,6 +62,7 @@ const { target, options = [
       data-sort-order="desc"
       title="切换排序方向"
       type="button"
+      aria-label="切换排序方向，当前为降序"
     >
       ↓
     </button>
@@ -62,12 +70,12 @@ const { target, options = [
   <div class="sort-controls__search-row">
     <input
       class="sort-controls__search"
-      type="text"
-      placeholder="搜索…"
+      type="search"
+      placeholder="搜索标题、年份、标签…"
       data-sort-search
       aria-label="搜索条目"
     />
-    <span class="sort-controls__count" data-sort-count></span>
+    <span class="sort-controls__count" data-sort-count aria-live="polite"></span>
   </div>
 </div>
 
@@ -115,6 +123,7 @@ const { target, options = [
                 color var(--dur-instant) var(--steps-micro),
                 border-color var(--dur-instant) var(--steps-micro);
     margin-left: -4px;
+    white-space: nowrap;
   }
 
   .sort-controls__btn:first-child {
@@ -159,7 +168,7 @@ const { target, options = [
 
   .sort-controls__search {
     flex: 1;
-    max-width: 320px;
+    max-width: 360px;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: var(--space-2) var(--space-3);
@@ -190,7 +199,26 @@ const { target, options = [
 
   @media (max-width: 768px) {
     .sort-controls__row {
-      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .sort-controls__row--filters .sort-controls__btns,
+    .sort-controls__row .sort-controls__btns {
+      overflow-x: auto;
+      padding: 0 0 var(--space-2);
+      scrollbar-width: thin;
+    }
+
+    .sort-controls__row--filters,
+    .sort-controls__row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .sort-controls__search-row {
+      align-items: stretch;
+      flex-direction: column;
+      gap: var(--space-2);
     }
 
     .sort-controls__search {
@@ -210,6 +238,9 @@ const { target, options = [
       const container = document.querySelector<HTMLElement>(targetSelector);
       if (!container) return;
 
+      const emptyEl = ctrl.dataset.sortEmptyTarget
+        ? document.querySelector<HTMLElement>(ctrl.dataset.sortEmptyTarget)
+        : null;
       const allItems = Array.from(container.children) as HTMLElement[];
       allItems.forEach((el, i) => el.dataset.sortOriginal = String(i));
 
@@ -233,24 +264,33 @@ const { target, options = [
         if (countEl) {
           countEl.textContent = visible === total ? `${total} 项` : `${visible} / ${total}`;
         }
+        if (emptyEl) {
+          emptyEl.hidden = visible !== 0;
+        }
+      }
+
+      function setPressed(buttons: NodeListOf<HTMLButtonElement>, active: HTMLButtonElement) {
+        buttons.forEach((button) => {
+          const isActive = button === active;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', String(isActive));
+        });
       }
 
       function applySortAndFilter() {
         const query = searchQuery.toLowerCase();
 
-        // 过滤：搜索 + 状态
         let visibleCount = 0;
         allItems.forEach((el) => {
-          const name = (el.dataset.sortName || '').toLowerCase();
+          const searchText = (el.dataset.sortSearch || el.dataset.sortName || '').toLowerCase();
           const status = el.dataset.sortStatus || '';
-          const nameMatch = !query || name.includes(query);
+          const nameMatch = !query || searchText.includes(query);
           const statusMatch = !activeFilter || status === activeFilter;
           const visible = nameMatch && statusMatch;
           el.style.display = visible ? '' : 'none';
           if (visible) visibleCount++;
         });
 
-        // 排序
         const visibleItems = allItems.filter((el) => el.style.display !== 'none');
         const hiddenItems = allItems.filter((el) => el.style.display === 'none');
         const isAsc = getEffectiveOrder();
@@ -289,43 +329,38 @@ const { target, options = [
             break;
         }
 
-        hiddenItems.forEach((el) => container.appendChild(el));
         sorted.forEach((el) => container.appendChild(el));
+        hiddenItems.forEach((el) => container.appendChild(el));
 
         updateCount(visibleCount, allItems.length);
       }
 
-      // 排序按钮
       sortButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          sortButtons.forEach((b) => b.classList.remove('is-active'));
-          btn.classList.add('is-active');
+          setPressed(sortButtons, btn);
           currentMode = btn.dataset.sortValue || 'default';
           applySortAndFilter();
         });
       });
 
-      // 筛选按钮
       filterButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          filterButtons.forEach((b) => b.classList.remove('is-active'));
-          btn.classList.add('is-active');
+          setPressed(filterButtons, btn);
           activeFilter = btn.dataset.filterValue || '';
           applySortAndFilter();
         });
       });
 
-      // 正反序
       if (orderBtn) {
         orderBtn.addEventListener('click', () => {
           ascending = !ascending;
           orderBtn.dataset.sortOrder = ascending ? 'asc' : 'desc';
           orderBtn.textContent = ascending ? '↑' : '↓';
+          orderBtn.setAttribute('aria-label', `切换排序方向，当前为${ascending ? '升序' : '降序'}`);
           applySortAndFilter();
         });
       }
 
-      // 搜索
       if (searchInput) {
         searchInput.addEventListener('input', () => {
           searchQuery = searchInput.value.trim();

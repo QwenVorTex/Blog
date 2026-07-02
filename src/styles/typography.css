@@ -14,7 +14,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: var(--text-4xl);
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   margin-bottom: var(--space-6);
 }
 
@@ -61,7 +61,7 @@ p {
 .text-display {
   font-size: var(--text-5xl);
   font-weight: 900;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
   line-height: 0.95;
   text-transform: uppercase;
 }
@@ -84,7 +84,7 @@ p {
   font-size: clamp(4rem, 15vw, 12rem);
   font-weight: 900;
   line-height: 0.85;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
   color: var(--color-border);
   opacity: 0.08;
   user-select: none;
@@ -111,3 +111,4 @@ p {
   h3 { font-size: var(--text-xl); }
   .text-display { font-size: clamp(2.5rem, 10vw, 4rem); }
 }
+

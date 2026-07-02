@@ -6,6 +6,8 @@
  * 需要代理环境下运行（api.bgm.tv 在国内被墙）。
  *
  * 用法：node scripts/fetch-bangumi.mjs
+ * 可选：--user=qwenvortex --refresh-covers --per-page=50
+ * 环境变量：BANGUMI_USERNAME / BANGUMI_USER_AGENT / BANGUMI_API_BASE / BANGUMI_REFRESH_COVERS=1
  */
 
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -15,10 +17,20 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-const BANGUMI_USERNAME = 'qwenvortex';
-const API_BASE = 'https://api.bgm.tv';
-const USER_AGENT = 'TorQuenBlog/1.0 (https://github.com/QwenVorTex/Blog)';
-const PER_PAGE = 50;
+const args = new Map(
+  process.argv.slice(2).flatMap((arg) => {
+    const match = arg.match(/^--([^=]+)=(.*)$/);
+    return match ? [[match[1], match[2]]] : [];
+  })
+);
+
+const flags = new Set(process.argv.slice(2).filter((arg) => arg.startsWith('--') && !arg.includes('=')));
+
+const BANGUMI_USERNAME = args.get('user') || process.env.BANGUMI_USERNAME || 'qwenvortex';
+const API_BASE = args.get('api-base') || process.env.BANGUMI_API_BASE || 'https://api.bgm.tv';
+const USER_AGENT = args.get('user-agent') || process.env.BANGUMI_USER_AGENT || 'TorQuenBlog/1.0 (https://github.com/QwenVorTex/Blog)';
+const REFRESH_COVERS = flags.has('--refresh-covers') || process.env.BANGUMI_REFRESH_COVERS === '1';
+const PER_PAGE = Number(args.get('per-page') || process.env.BANGUMI_PER_PAGE || 50);
 
 const SUBJECT_TYPE = { anime: 2, games: 4 };
 const COLLECTION_TYPE = { 1: 'wish', 2: 'done', 3: 'doing', 4: 'on_hold', 5: 'dropped' };
@@ -57,7 +69,7 @@ async function fetchAllCollections(type) {
 }
 
 async function downloadImage(imageUrl, destPath) {
-  if (existsSync(destPath)) return false;
+  if (existsSync(destPath) && !REFRESH_COVERS) return false;
   try {
     const res = await fetch(imageUrl, {
       headers: { 'User-Agent': USER_AGENT, Referer: 'https://bgm.tv/' },
@@ -146,7 +158,9 @@ async function processCollections(items, type) {
 }
 
 async function main() {
-  console.log(`Fetching Bangumi collections for user: ${BANGUMI_USERNAME}\n`);
+  console.log(`Fetching Bangumi collections for user: ${BANGUMI_USERNAME}`);
+  console.log(`API: ${API_BASE}`);
+  console.log(`Refresh covers: ${REFRESH_COVERS ? 'yes' : 'no'}\n`);
 
   for (const type of ['anime', 'games']) {
     console.log(`\n=== ${type} ===`);
@@ -165,3 +179,4 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+

@@ -4,6 +4,7 @@ import Footer from '@/components/Footer.astro';
 import ScrollEngine from '@/components/ScrollEngine.astro';
 import BrutalistCursor from '@/components/BrutalistCursor.astro';
 import { siteConfig } from '@/config/site';
+import '@/styles/global.css';
 
 interface Props {
   title: string;
@@ -93,9 +94,6 @@ const pageTitle =
   </div>
 
   <ScrollEngine />
-
-  <style is:global>
-    @import '@/styles/global.css';
-  </style>
 </body>
 </html>
+

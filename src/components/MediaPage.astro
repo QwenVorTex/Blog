@@ -1,0 +1,317 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MediaCard from '@/components/MediaCard.astro';
+import SortControls from '@/components/SortControls.astro';
+import type { MediaInfo } from '@/lib/media';
+
+interface Props {
+  title: string;
+  description: string;
+  eyebrow: string;
+  glyph: string;
+  intro: string;
+  items: MediaInfo[];
+  filters: Array<{ value: string; label: string }>;
+  doneLabel: string;
+  doingLabel: string;
+  coverAspect: 'poster' | 'wide';
+  emptyText?: string;
+}
+
+const {
+  title,
+  description,
+  eyebrow,
+  glyph,
+  intro,
+  items,
+  filters,
+  doneLabel,
+  doingLabel,
+  coverAspect,
+  emptyText = '没有找到匹配的条目。',
+} = Astro.props;
+
+const pageKey = title === '追番' ? 'anime' : 'games';
+const gridId = `${pageKey}-grid`;
+const emptyId = `${pageKey}-empty`;
+const totalCount = items.length;
+const doneCount = items.filter((item) => item.collectionType === doneLabel).length;
+const doingCount = items.filter((item) => item.collectionType === doingLabel).length;
+const ratedItems = items.filter((item) => item.myRate > 0);
+const highScoreCount = ratedItems.filter((item) => item.myRate >= 8).length;
+const averageScore = ratedItems.length > 0
+  ? (ratedItems.reduce((sum, item) => sum + item.myRate, 0) / ratedItems.length).toFixed(1)
+  : 'NA';
+const latestItems = items.slice(0, 3);
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="media-page" data-cursor-zone="media">
+    <div class="container">
+      <header class="media-page__header">
+        <span class="text-giant media-page__bg-text" aria-hidden="true">{glyph}</span>
+        <div class="media-page__title-block">
+          <p class="text-label media-page__eyebrow anim-enter">{eyebrow}</p>
+          <h1 class="text-display anim-enter anim-delay-1">{title}</h1>
+          <p class="media-page__intro anim-enter anim-delay-2">{intro}</p>
+        </div>
+
+        {latestItems.length > 0 && (
+          <aside class="media-page__recent anim-enter anim-delay-3" aria-label="最近更新">
+            <span class="badge">最近更新</span>
+            <ol>
+              {latestItems.map((item) => (
+                <li>
+                  <span>{item.nameCn || item.name}</span>
+                  <strong>{item.myRate > 0 ? `★${item.myRate}` : item.collectionType}</strong>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )}
+
+        <div class="media-page__ledger anim-enter anim-delay-3" aria-label={`${title}统计`}>
+          <div class="media-page__stat media-page__stat--total">
+            <span>总数</span>
+            <strong>{totalCount}</strong>
+          </div>
+          <div class="media-page__stat">
+            <span>{doneLabel}</span>
+            <strong>{doneCount}</strong>
+          </div>
+          <div class="media-page__stat">
+            <span>{doingLabel}</span>
+            <strong>{doingCount}</strong>
+          </div>
+          <div class="media-page__stat">
+            <span>均分</span>
+            <strong>{averageScore}</strong>
+          </div>
+          <div class="media-page__stat">
+            <span>8+</span>
+            <strong>{highScoreCount}</strong>
+          </div>
+        </div>
+      </header>
+
+      <SortControls
+        target={`#${gridId}`}
+        emptyTarget={`#${emptyId}`}
+        options={[
+          { value: 'default', label: '时间' },
+          { value: 'alpha', label: '首字母' },
+          { value: 'date', label: '年代' },
+          { value: 'score', label: '评分' },
+        ]}
+        filters={filters}
+      />
+
+      <div class="media-grid" id={gridId}>
+        {items.map((item, index) => (
+          <MediaCard item={item} index={index} coverAspect={coverAspect} />
+        ))}
+      </div>
+
+      <div class="media-page__empty card card--flat" id={emptyId} hidden>
+        <p class="media-page__empty-title">NO MATCH</p>
+        <p>{emptyText}</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .media-page {
+    padding: var(--space-16) 0;
+  }
+
+  .media-page__header {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+    gap: var(--space-8);
+    align-items: end;
+    margin-bottom: var(--space-10);
+    padding-bottom: var(--space-8);
+    border-bottom: var(--border-thick);
+  }
+
+  .media-page__bg-text {
+    top: -18%;
+    right: 4%;
+  }
+
+  .media-page__title-block,
+  .media-page__recent,
+  .media-page__ledger {
+    position: relative;
+    z-index: var(--z-above);
+  }
+
+  .media-page__eyebrow {
+    margin-bottom: var(--space-3);
+  }
+
+  .media-page__intro {
+    color: var(--color-text-muted);
+    max-width: 42rem;
+    margin-bottom: 0;
+  }
+
+  .media-page__ledger {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-column: 1 / -1;
+    border: var(--border-thick);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .media-page__stat {
+    min-width: 0;
+    padding: var(--space-4);
+    border-right: var(--border-medium);
+  }
+
+  .media-page__stat:last-child {
+    border-right: none;
+  }
+
+  .media-page__stat--total {
+    background: var(--color-accent);
+  }
+
+  .media-page__stat span {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+  }
+
+  .media-page__stat strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    line-height: 1;
+  }
+
+  .media-page__recent {
+    align-self: stretch;
+    border: var(--border-thick);
+    background: var(--color-border);
+    color: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-5);
+  }
+
+  .media-page__recent .badge {
+    background: var(--color-accent);
+    color: var(--color-border);
+    margin-bottom: var(--space-4);
+  }
+
+  .media-page__recent ol {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .media-page__recent li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid rgba(var(--color-base-rgb), 0.24);
+    font-size: var(--text-sm);
+  }
+
+  .media-page__recent li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .media-page__recent span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .media-page__recent strong {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .media-page__empty {
+    margin-top: var(--space-8);
+    text-align: center;
+    padding: var(--space-12);
+  }
+
+  .media-page__empty-title {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 900;
+    margin-bottom: var(--space-3);
+  }
+
+  @media (max-width: 860px) {
+    .media-page {
+      padding: var(--space-10) 0;
+    }
+
+    .media-page__header {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+
+    .media-page__ledger {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .media-page__stat {
+      border-right: var(--border-medium);
+      border-bottom: var(--border-medium);
+    }
+
+    .media-page__stat:nth-child(2n) {
+      border-right: none;
+    }
+
+    .media-page__stat:last-child {
+      border-bottom: none;
+    }
+
+    .media-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-4);
+    }
+  }
+
+  @media (max-width: 520px) {
+    .media-page__ledger {
+      grid-template-columns: 1fr;
+    }
+
+    .media-page__stat,
+    .media-page__stat:nth-child(2n) {
+      border-right: none;
+      border-bottom: var(--border-medium);
+    }
+
+    .media-page__stat:last-child {
+      border-bottom: none;
+    }
+  }
+</style>

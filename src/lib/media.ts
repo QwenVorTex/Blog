@@ -15,6 +15,9 @@ export interface MediaInfo {
   cover: string;
   collectionType: string;
   myRate: number;
+  statusTone?: 'done' | 'doing' | 'wish' | 'paused' | 'neutral';
+  displayScore?: string;
+  coverAspect?: 'poster' | 'wide';
 }
 
 const ANIME_LABELS: Record<string, string> = {
@@ -33,7 +36,21 @@ const GAME_LABELS: Record<string, string> = {
   dropped: '抛弃',
 };
 
-function createNormalizer(labels: Record<string, string>) {
+const STATUS_TONES: Record<string, MediaInfo['statusTone']> = {
+  done: 'done',
+  doing: 'doing',
+  wish: 'wish',
+  on_hold: 'paused',
+  dropped: 'paused',
+};
+
+function formatDisplayScore(entry: BangumiEntry) {
+  if (entry.myRate > 0) return `★${entry.myRate}`;
+  if (entry.score > 0) return entry.score.toFixed(1);
+  return 'NA';
+}
+
+function createNormalizer(labels: Record<string, string>, coverAspect: 'poster' | 'wide') {
   return (entry: BangumiEntry): MediaInfo => {
     const nameCn = entry.name_cn || entry.name;
     return {
@@ -51,12 +68,15 @@ function createNormalizer(labels: Record<string, string>) {
       cover: entry.cover,
       collectionType: labels[entry.collectionType] ?? entry.collectionType,
       myRate: entry.myRate,
+      statusTone: STATUS_TONES[entry.collectionType] ?? 'neutral',
+      displayScore: formatDisplayScore(entry),
+      coverAspect,
     };
   };
 }
 
-const normalizeAnime = createNormalizer(ANIME_LABELS);
-const normalizeGame = createNormalizer(GAME_LABELS);
+const normalizeAnime = createNormalizer(ANIME_LABELS, 'poster');
+const normalizeGame = createNormalizer(GAME_LABELS, 'wide');
 
 export function getAnimeCollection(): MediaInfo[] {
   return animeEntries.map(normalizeAnime);

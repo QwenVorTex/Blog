@@ -24,8 +24,8 @@
   --color-code-text:    #e0e0e0;
 
   /* ── Typography ── */
-  --font-display:       'Inter', 'Helvetica Neue', 'Arial Black', sans-serif;
-  --font-body:          'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-display:       'Archivo Black', 'Impact', sans-serif;
+  --font-body:          'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
   --font-mono:          'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
   --text-xs:            0.75rem;    /* 12px */
@@ -41,7 +41,7 @@
   --leading-tight:      1.1;
   --leading-snug:       1.25;
   --leading-normal:     1.6;
-  --tracking-tight:     -0.03em;
+  --tracking-tight:     0em;
   --tracking-normal:    0em;
   --tracking-wide:      0.08em;
 
@@ -101,3 +101,4 @@
   --dur-normal:   0.35s;
   --dur-slow:     0.6s;
 }
+
