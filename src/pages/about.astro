@@ -15,6 +15,11 @@ const socialLinks = [
   { label: 'X', href: siteConfig.social.x },
   { label: 'Bilibili', href: siteConfig.social.bilibili },
 ].filter((item) => item.href);
+const profileFacts = [
+  { label: '身份', value: siteConfig.author.role },
+  { label: '位置', value: '华师 / 互联网角落' },
+  { label: '状态', value: '低功耗运行中' },
+];
 ---
 
 <BaseLayout title="关于" description="关于 TorQuen 和这个博客">
@@ -23,7 +28,9 @@ const socialLinks = [
       <!-- ① Header -->
       <header class="about__header">
         <span class="text-giant about__bg-text" aria-hidden="true">ME</span>
-        <h1 class="text-display anim-enter">关于</h1>
+        <p class="text-label about__eyebrow anim-enter">个人档案 / Owner file</p>
+        <h1 class="text-display anim-enter anim-delay-1">关于</h1>
+        <p class="about__intro anim-enter anim-delay-2">这里不是正式简历，是一张贴在墙上的个人说明书。</p>
       </header>
 
       <div class="about__grid">
@@ -35,16 +42,24 @@ const socialLinks = [
             <h3>{siteConfig.author.name}</h3>
             <p class="text-label">{siteConfig.author.role}</p>
           </div>
+          <dl class="about__dossier">
+            {profileFacts.map((item) => (
+              <div>
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
         <div class="about__bio anim-enter anim-delay-2">
-          <h2>你好，世界。</h2>
+          <h2>档案摘要</h2>
           <p>
             {siteConfig.author.bio}
             协会里的唯一大摆子，靠着别人的剩菜过活。
           </p>
           <p>
-            这个博客使用 <strong>Astro</strong> 构建，部署于 Github Pages。
+            这个博客使用 <strong>Astro</strong> 构建，部署于 GitHub Pages。
             设计灵感来自粗野主义、Y2K 和波普艺术。
           </p>
 
@@ -73,8 +88,8 @@ const socialLinks = [
 
       <section class="about-section">
         <div class="about-section__header">
-          <span class="about-section__num" aria-hidden="true">02</span>
-          <h2 class="about-section__title">时间线</h2>
+          <span class="about-section__num" aria-hidden="true">LOG</span>
+          <h2 class="about-section__title">活动记录</h2>
         </div>
         <div class="timeline">
           {timeline.map((item) => (
@@ -89,8 +104,8 @@ const socialLinks = [
 
       <section class="about-section">
         <div class="about-section__header">
-          <span class="about-section__num" aria-hidden="true">03</span>
-          <h2 class="about-section__title">更多</h2>
+          <span class="about-section__num" aria-hidden="true">LINK</span>
+          <h2 class="about-section__title">传送门</h2>
         </div>
         <div class="about__quick-links">
           <a href="/anime" class="about__quick-card card scroll-reveal">
@@ -168,6 +183,32 @@ const socialLinks = [
     margin-bottom: var(--space-1);
   }
 
+  .about__dossier {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: var(--border-medium);
+  }
+
+  .about__dossier div {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+
+  .about__dossier dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+  }
+
+  .about__dossier dd {
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
   .about__bio h2 {
     margin-bottom: var(--space-6);
   }
@@ -217,7 +258,7 @@ const socialLinks = [
 
   .about-section__num {
     font-family: var(--font-mono);
-    font-size: clamp(4rem, 10vw, 8rem);
+    font-size: clamp(3.5rem, 9vw, 7rem);
     font-weight: 900;
     color: rgba(var(--color-border-rgb), 0.06);
     position: absolute;
@@ -360,3 +401,6 @@ const socialLinks = [
     }
   }
 </style>
+
+
+

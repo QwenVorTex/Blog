@@ -12,8 +12,8 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
   <div class="site-header__inner container">
     <!-- Logo -->
     <a href="/" class="site-header__logo" aria-label="返回首页">
-      <span class="site-header__logo-block"></span>
-      <span class="site-header__logo-text">BLOG</span>
+      <span class="site-header__logo-block"><span></span></span>
+      <span class="site-header__logo-text">TorQuen</span>
     </a>
 
     <!-- Navigation -->
@@ -126,16 +126,24 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
   }
 
   .site-header__logo-block {
-    display: block;
-    width: 32px;
-    height: 32px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    background: var(--color-accent);
+    border: var(--border-medium);
+    box-shadow: 3px 3px 0 0 var(--color-border);
+    transition: transform var(--dur-fast) var(--steps-small), background-color var(--dur-fast) var(--steps-small);
+  }
+
+  .site-header__logo-block span {
+    width: 14px;
+    height: 14px;
     background: var(--color-border);
-    border: none;
-    transition: transform var(--dur-fast) var(--steps-small);
   }
 
   .site-header__logo:hover .site-header__logo-block {
-    transform: rotate(45deg);
+    transform: rotate(-3deg) translate(-2px, -2px);
     background: var(--color-action);
   }
 
@@ -195,6 +203,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
     position: relative;
   }
 
+
   .site-header__dropdown-trigger {
     background: none;
     cursor: pointer;
@@ -216,7 +225,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
 
   .site-header__dropdown-menu {
     position: absolute;
-    top: calc(100% + 4px);
+    top: 100%;
     right: 0;
     min-width: 140px;
     background: var(--color-base);
@@ -419,3 +428,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
   initHeader();
   document.addEventListener('astro:page-load', initHeader);
 </script>
+
+
+
+

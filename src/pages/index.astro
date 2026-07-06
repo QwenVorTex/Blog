@@ -11,12 +11,21 @@ import { getAnimeCollection, getGameCollection } from '@/lib/media';
 const allPosts = getPublishedPosts(await getCollection('posts'));
 const featuredPosts = getFeaturedPosts(allPosts, 3);
 const recentPosts = allPosts.slice(0, 6);
+const secondaryPosts = recentPosts.filter((post) => !featuredPosts.some((fp) => fp.id === post.id)).slice(0, 3);
 const tagStats = getTagStats(allPosts).slice(0, 8);
 const animeItems = getAnimeCollection();
 const gameItems = getGameCollection();
+const latestPost = recentPosts[0];
+const topTopic = tagStats[0];
 const mediaHighlights = [
   ...animeItems.slice(0, 2).map((item) => ({ ...item, kind: '追番', href: '/anime' })),
   ...gameItems.slice(0, 2).map((item) => ({ ...item, kind: '游戏', href: '/games' })),
+];
+const archiveLinks = [
+  { label: '文章', value: allPosts.length, detail: '设计、代码和一些不入流的想法', href: '/archive', tone: 'accent' },
+  { label: '追番', value: animeItems.length, detail: 'TorQuen的追番目录', href: '/anime', tone: 'link' },
+  { label: '游戏', value: gameItems.length, detail: 'TorQuen的游戏档案', href: '/games', tone: 'action' },
+  { label: '主题', value: tagStats.length, detail: '正在使用的文章标签', href: '/archive', tone: 'plain' },
 ];
 ---
 
@@ -31,36 +40,43 @@ const mediaHighlights = [
           <Button label={siteConfig.home.ctaLabel} href={siteConfig.home.ctaHref} variant="primary" />
           <Button label={siteConfig.home.secondaryLabel} href={siteConfig.home.secondaryHref} variant="ghost" />
         </div>
-      </div>
-
-      <div class="home-hero__side">
-        <div class="home-hero__visual anim-enter anim-delay-2">
-          <div class="home-hero__grid-art" aria-hidden="true">
-            <div class="home-hero__block home-hero__block--1"></div>
-            <div class="home-hero__block home-hero__block--2"></div>
-            <div class="home-hero__block home-hero__block--3"></div>
-            <div class="home-hero__block home-hero__block--4"></div>
-          </div>
+        <div class="home-hero__stamps anim-enter anim-delay-3" aria-label="站点状态">
+          <span>STATIC DOSSIER</span>
+          <span>RSS READY</span>
+          <span>BANGUMI SYNC</span>
         </div>
-
-        <aside class="home-hero__panel card card--accent anim-enter anim-delay-3">
-          <span class="badge">站点概览</span>
-          <ul class="home-hero__stats">
-            <li>
-              <strong>{allPosts.length}</strong>
-              <span>已发布文章</span>
-            </li>
-            <li>
-              <strong>{tagStats.length}</strong>
-              <span>正在写的主题</span>
-            </li>
-            <li>
-              <strong>RSS</strong>
-              <span>可以直接订阅更新</span>
-            </li>
-          </ul>
-        </aside>
       </div>
+
+      <aside class="home-archive-wall anim-enter anim-delay-2" aria-label="站点档案墙">
+        <div class="home-archive-wall__header">
+          <span class="badge">个人档案墙</span>
+          <strong>TorQuen / File Index</strong>
+        </div>
+        <div class="home-motion-grid" aria-hidden="true">
+          <div class="home-motion-block home-motion-block--1"></div>
+          <div class="home-motion-block home-motion-block--2"></div>
+          <div class="home-motion-block home-motion-block--3"></div>
+          <div class="home-motion-block home-motion-block--4"></div>
+        </div>
+        <div class="home-archive-wall__grid">
+          {archiveLinks.map((item, index) => (
+            <a
+              href={item.href}
+              class:list={['home-file-note', `home-file-note--${item.tone}`]}
+              style={`--note-rotate: ${index % 2 === 0 ? '-0.6deg' : '0.45deg'};`}
+            >
+              <span class="home-file-note__label">{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.detail}</p>
+            </a>
+          ))}
+        </div>
+        <div class="home-archive-wall__ticket">
+          <span class="home-archive-wall__ticket-label">最近钉上来</span>
+          <strong>{latestPost ? latestPost.data.title : '暂无文章'}</strong>
+          <p>{topTopic ? `高频主题：${topTopic.tag} · ${topTopic.count}` : '标签会在文章发布后自动出现'}</p>
+        </div>
+      </aside>
     </div>
     <div class="home-hero__bar" aria-hidden="true"></div>
   </section>
@@ -69,54 +85,37 @@ const mediaHighlights = [
     <div class="container">
       <div class="section__header">
         <div>
-          <p class="text-label section__eyebrow">Start Here</p>
+          <p class="text-label section__eyebrow">置顶档案</p>
           <h2 class="anim-enter">从这里开始看</h2>
         </div>
         <Button label="查看归档" href="/archive" variant="ghost" />
       </div>
-
       <div class="grid grid--brutalist">
         {featuredPosts.map((post, i) => (
-          <PostCard
-            title={post.data.title}
-            description={post.data.description}
-            href={`/posts/${post.id}`}
-            pubDate={post.data.pubDate}
-            heroColor={post.data.heroColor}
-            tags={post.data.tags}
-            index={i}
-          />
+          <PostCard title={post.data.title} description={post.data.description} href={`/posts/${post.id}`} pubDate={post.data.pubDate} heroColor={post.data.heroColor} tags={post.data.tags} index={i} />
         ))}
       </div>
-
       {allPosts.length === 0 && (
         <div class="empty-state card card--flat">
-          <p class="text-display" style="font-size: var(--text-2xl); margin-bottom: var(--space-4);">
-            NO POSTS YET
-          </p>
+          <p class="text-display" style="font-size: var(--text-2xl); margin-bottom: var(--space-4);">NO POSTS YET</p>
           <p>还没有文章。开始写作吧！</p>
         </div>
       )}
     </div>
   </section>
 
-  <section class="section">
+  <section class="section section--paper">
     <div class="container">
       <div class="section__header">
         <div>
-          <p class="text-label section__eyebrow">Topics</p>
+          <p class="text-label section__eyebrow">主题标签</p>
           <h2>正在写的主题</h2>
         </div>
         <Button label="订阅 RSS" href="/rss.xml" variant="ghost" />
       </div>
-
       <div class="topic-cloud card card--flat scroll-reveal">
         {tagStats.map((item, index) => (
-          <Tag
-            label={`${item.tag} · ${item.count}`}
-            href={`/archive?tag=${encodeURIComponent(item.tag)}`}
-            variant={index % 3 === 0 ? 'accent' : index % 3 === 1 ? 'link' : 'action'}
-          />
+          <Tag label={`${item.tag} · ${item.count}`} href={`/archive?tag=${encodeURIComponent(item.tag)}`} variant={index % 3 === 0 ? 'accent' : index % 3 === 1 ? 'link' : 'action'} />
         ))}
       </div>
     </div>
@@ -126,34 +125,23 @@ const mediaHighlights = [
     <div class="container">
       <div class="section__header">
         <div>
-          <p class="text-label section__eyebrow">What You Will Find</p>
+          <p class="text-label section__eyebrow">站点索引</p>
           <h2>这个站点会写什么</h2>
         </div>
       </div>
-
-      <div class="grid grid--3">
-        <div class="card card--accent scroll-reveal">
-          <h3>设计判断</h3>
-          <p>记录配色、排版、信息层级和可访问性的取舍，不只展示结果，也解释为什么这么做。</p>
-        </div>
-        <div class="card scroll-reveal">
-          <h3>实现过程</h3>
-          <p>把视觉语言落到 Astro、TypeScript 和 CSS 上，关注组件结构、构建方式和可维护性。</p>
-        </div>
-        <div class="card card--link scroll-reveal">
-          <h3>个人清单</h3>
-          <p>保留追番和游戏页面，但它们现在是纯静态清单，不再拖慢构建，也更适合长期维护。</p>
-        </div>
+      <div class="grid grid--3 home-index-grid">
+        <div class="home-index-card card card--accent scroll-reveal"><span class="home-index-card__code">WRITE</span><h3>设计判断</h3><p>记录配色、排版、信息层级和可访问性的取舍，不只展示结果，也解释为什么这么做。</p></div>
+        <div class="home-index-card card scroll-reveal"><span class="home-index-card__code">BUILD</span><h3>实现过程</h3><p>把视觉语言落到 Astro、TypeScript 和 CSS 上，关注组件结构、构建方式和可维护性。</p></div>
+        <div class="home-index-card card card--link scroll-reveal"><span class="home-index-card__code">COLLECT</span><h3>个人清单</h3><p>追番和游戏页面像静态档案柜，记录最近被钉到墙上的东西。</p></div>
       </div>
     </div>
   </section>
-
 
   <section class="section section--media">
     <div class="container">
       <div class="section__header">
         <div>
-          <p class="text-label section__eyebrow">Bangumi Shelf</p>
+          <p class="text-label section__eyebrow">收藏架</p>
           <h2>最近钉到墙上的东西</h2>
         </div>
         <div class="media-links">
@@ -161,7 +149,6 @@ const mediaHighlights = [
           <Button label="游戏档案" href="/games" variant="ghost" />
         </div>
       </div>
-
       <div class="home-media-grid">
         {mediaHighlights.map((item, index) => (
           <a href={item.href} class:list={['home-media-card', `home-media-card--${item.statusTone ?? 'neutral'}`]} style={`--home-media-rotate: ${index % 2 === 0 ? '-0.4deg' : '0.35deg'};`}>
@@ -169,396 +156,165 @@ const mediaHighlights = [
             <div class="home-media-card__cover" aria-hidden="true">
               {item.cover ? <img src={item.cover} alt="" loading="lazy" decoding="async" /> : <span>{(item.nameCn || item.name).charAt(0)}</span>}
             </div>
-            <div class="home-media-card__body">
-              <h3>{item.nameCn || item.name}</h3>
-              <p>{item.year || '----'} · {item.collectionType} · {item.displayScore}</p>
-            </div>
+            <div class="home-media-card__body"><h3>{item.nameCn || item.name}</h3><p>{item.year || '----'} · {item.collectionType} · {item.displayScore}</p></div>
           </a>
         ))}
       </div>
     </div>
   </section>
-  <section class="section section--compact">
-    <div class="container">
-      <div class="section__header">
-        <div>
-          <p class="text-label section__eyebrow">Latest</p>
-          <h2>最近更新</h2>
+
+  {secondaryPosts.length > 0 && (
+    <section class="section section--compact">
+      <div class="container">
+        <div class="section__header"><div><p class="text-label section__eyebrow">最近更新</p><h2>新贴上墙的文章</h2></div></div>
+        <div class="grid grid--brutalist">
+          {secondaryPosts.map((post, i) => (
+            <PostCard title={post.data.title} description={post.data.description} href={`/posts/${post.id}`} pubDate={post.data.pubDate} heroColor={post.data.heroColor} tags={post.data.tags} index={i + 3} />
+          ))}
         </div>
       </div>
-
-      <div class="grid grid--brutalist">
-        {recentPosts.filter((post) => !featuredPosts.some((fp) => fp.id === post.id)).slice(0, 3).map((post, i) => (
-          <PostCard
-            title={post.data.title}
-            description={post.data.description}
-            href={`/posts/${post.id}`}
-            pubDate={post.data.pubDate}
-            heroColor={post.data.heroColor}
-            tags={post.data.tags}
-            index={i + 3}
-          />
-        ))}
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
-  .home-hero {
-    border-bottom: var(--border-thick);
-  }
-
-  .home-hero__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
-    gap: var(--space-10);
-    align-items: start;
-    padding-top: var(--space-16);
-    padding-bottom: var(--space-12);
-  }
-
-  .home-hero__side {
-    display: grid;
-    gap: var(--space-6);
-    align-self: stretch;
-  }
-
-  .home-hero__eyebrow {
-    margin-bottom: var(--space-4);
-  }
-
-  .home-hero__title {
-    max-width: 12ch;
-    margin-bottom: var(--space-6);
-  }
-
-  .home-hero__subtitle {
-    font-size: var(--text-lg);
-    max-width: 44ch;
-    color: var(--color-text-muted);
-  }
-
-  .home-hero__actions {
-    display: flex;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .home-hero__visual {
-    border: var(--border-thick);
-    background:
-      linear-gradient(135deg, rgba(var(--color-border-rgb), 0.04) 25%, transparent 25%) -12px 0 / 24px 24px,
-      linear-gradient(225deg, rgba(var(--color-border-rgb), 0.03) 25%, transparent 25%) -12px 0 / 24px 24px,
-      var(--color-surface);
-    box-shadow: var(--shadow-lg);
-    padding: var(--space-6);
-    min-height: 280px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .home-hero__grid-art {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-    width: min(100%, 320px);
-  }
-
-  .home-hero__block {
-    aspect-ratio: 1;
-    border: var(--border-thick);
-    transition: transform 0.16s steps(2, end),
-                box-shadow 0.16s steps(2, end);
-    cursor: pointer;
-  }
-
-  .home-hero__block:hover {
-    animation-play-state: paused;
-    transform: translate(-6px, -6px) rotate(0deg) !important;
-    box-shadow: 14px 14px 0px 0px var(--color-border);
-  }
-
-  .home-hero__block:active {
-    transform: translate(2px, 2px) rotate(0deg) !important;
-    box-shadow: 2px 2px 0px 0px var(--color-border);
-  }
-
-  .home-hero__block--1 {
-    background: var(--color-accent);
-    box-shadow: var(--shadow-lg);
-    transform: rotate(-2deg);
-    animation: home-block-drift-1 3.6s steps(5, end) infinite;
-  }
-
-  .home-hero__block--2 {
-    background: var(--color-action);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(20px) rotate(1deg);
-    animation: home-block-drift-2 4.2s steps(5, end) infinite;
-    animation-delay: 0.4s;
-  }
-
-  .home-hero__block--3 {
-    background: var(--color-link);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-10px) rotate(0.5deg);
-    animation: home-block-drift-3 3.8s steps(5, end) infinite;
-    animation-delay: 0.9s;
-  }
-
-  .home-hero__block--4 {
-    background: var(--color-border);
-    box-shadow: var(--shadow-lg);
-    transform: rotate(-1deg);
-    animation: home-block-drift-4 4.6s steps(5, end) infinite;
-    animation-delay: 0.2s;
-  }
-
-  .home-hero__stats {
-    list-style: none;
-    margin: var(--space-6) 0;
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .home-hero__stats li {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding-bottom: var(--space-3);
-    border-bottom: var(--border-medium);
-  }
-
-  .home-hero__stats strong {
-    font-family: var(--font-display);
-    font-size: var(--text-2xl);
-  }
-
-  .home-hero__stats span {
-    align-self: end;
-    text-align: right;
-    color: var(--color-text-muted);
-  }
-
-  .home-hero__panel-copy {
-    margin-bottom: 0;
-  }
-
-  .home-hero__bar {
-    height: 8px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--color-border) 0px,
-      var(--color-border) 18px,
-      var(--color-accent) 18px,
-      var(--color-accent) 36px,
-      var(--color-link) 36px,
-      var(--color-link) 54px,
-      var(--color-action) 54px,
-      var(--color-action) 72px
-    );
-  }
-
-  .section {
-    padding: var(--space-16) 0;
-  }
-
-  .section--compact {
-    padding-top: 0;
-  }
-
-  .section__header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: var(--space-10);
-    gap: var(--space-4);
-  }
-
-  .section__header h2 {
-    margin-bottom: 0;
-  }
-
-  .section__eyebrow {
-    margin-bottom: var(--space-3);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-16);
-  }
-
-  .topic-cloud {
-    display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
+  .home-hero { border-bottom: var(--border-thick); background: linear-gradient(90deg, rgba(var(--color-border-rgb), 0.04) 1px, transparent 1px) 0 0 / 44px 44px, var(--color-base); }
+  .home-hero__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(380px, 0.9fr); gap: var(--space-10); align-items: center; padding-top: var(--space-16); padding-bottom: var(--space-12); }
+  .home-hero__eyebrow { margin-bottom: var(--space-4); }
+  .home-hero__title { max-width: 12ch; margin-bottom: var(--space-6); }
+  .home-hero__subtitle { font-size: var(--text-lg); max-width: 44ch; color: var(--color-text-muted); }
+  .home-hero__actions, .home-hero__stamps { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .home-hero__stamps { margin-top: var(--space-8); }
+  .home-hero__stamps span { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 800; padding: var(--space-1) var(--space-2); border: var(--border-medium); background: var(--color-surface); box-shadow: 3px 3px 0 0 var(--color-border); }
+  .home-archive-wall { position: relative; border: var(--border-thick); background: linear-gradient(135deg, rgba(var(--color-border-rgb), 0.07) 25%, transparent 25%) -12px 0 / 24px 24px, var(--color-paper); box-shadow: var(--shadow-xl); padding: var(--space-5); transform: rotate(0.35deg); }
+  .home-archive-wall::before, .home-archive-wall::after { content: ""; position: absolute; height: 20px; width: 96px; background: rgba(var(--color-accent-rgb), 0.72); border: var(--border-thin); z-index: var(--z-above); }
+  .home-archive-wall::before { top: -14px; left: 12%; transform: rotate(-3deg); }
+  .home-archive-wall::after { right: 10%; bottom: -14px; transform: rotate(2deg); }
+  .home-archive-wall__header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+  .home-archive-wall__header strong { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; }
+  .home-motion-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); padding: var(--space-3); border: var(--border-thick); background: var(--color-surface); box-shadow: var(--shadow-md); }
+  .home-motion-block { aspect-ratio: 1; min-height: 62px; border: var(--border-thick); box-shadow: var(--shadow-md); }
+  .home-motion-block--1 { background: var(--color-accent); transform: rotate(-2deg); animation: home-block-drift-1 3.6s steps(5, end) infinite; }
+  .home-motion-block--2 { background: var(--color-action); transform: translateY(12px) rotate(1deg); animation: home-block-drift-2 4.2s steps(5, end) infinite; animation-delay: 0.4s; }
+  .home-motion-block--3 { background: var(--color-link); transform: translateY(-8px) rotate(0.5deg); animation: home-block-drift-3 3.8s steps(5, end) infinite; animation-delay: 0.9s; }
+  .home-motion-block--4 { background: var(--color-border); transform: rotate(-1deg); animation: home-block-drift-4 4.6s steps(5, end) infinite; animation-delay: 0.2s; }
+  .home-motion-block:hover { animation-play-state: paused; transform: translate(-6px, -6px) rotate(0deg) !important; box-shadow: 14px 14px 0 0 var(--color-border); }
+  .home-archive-wall__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .home-file-note { display: grid; gap: var(--space-2); min-height: 144px; padding: var(--space-4); color: var(--color-text); text-decoration: none; background: var(--color-surface); border: var(--border-thick); box-shadow: var(--shadow-md); transform: rotate(var(--note-rotate, 0deg)); animation: home-file-note-hop-1 3.6s steps(5, end) infinite; transition: transform var(--dur-fast) var(--steps-small), box-shadow var(--dur-fast) var(--steps-small); }
+  .home-file-note:nth-child(2) { animation-name: home-file-note-hop-2; animation-duration: 4.2s; animation-delay: 0.25s; }
+  .home-file-note:nth-child(3) { animation-name: home-file-note-hop-3; animation-duration: 3.8s; animation-delay: 0.65s; }
+  .home-file-note:nth-child(4) { animation-name: home-file-note-hop-4; animation-duration: 4.6s; animation-delay: 0.1s; }
+  .home-file-note:hover { color: var(--color-text); text-decoration: none; animation-play-state: paused; transform: rotate(0deg) translate(-4px, -4px) !important; box-shadow: 12px 12px 0 0 var(--color-border); }
+  .home-file-note--accent { background: var(--color-accent); }
+  .home-file-note--link { background: var(--color-link); color: var(--color-surface); }
+  .home-file-note--action { background: var(--color-action); color: var(--color-surface); }
+  .home-file-note--link:hover, .home-file-note--action:hover { color: var(--color-surface); }
+  .home-file-note__label { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 800; }
+  .home-file-note strong { font-family: var(--font-display); font-size: var(--text-4xl); line-height: 0.9; }
+  .home-file-note p { margin: 0; font-size: var(--text-sm); line-height: var(--leading-snug); max-width: none; }
+  .home-archive-wall__ticket { margin-top: var(--space-5); padding: var(--space-4); background: var(--color-border); color: var(--color-surface); border: var(--border-thick); border-color: var(--color-border); }
+  .home-archive-wall__ticket-label { display: block; margin-bottom: var(--space-2); color: var(--color-accent); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 800; }
+  .home-archive-wall__ticket strong { display: block; margin-bottom: var(--space-2); font-family: var(--font-display); font-size: var(--text-lg); line-height: var(--leading-snug); }
+  .home-archive-wall__ticket p { margin: 0; color: rgba(var(--color-base-rgb), 0.84); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .home-hero__bar { height: 8px; background: repeating-linear-gradient(90deg, var(--color-border) 0px, var(--color-border) 18px, var(--color-accent) 18px, var(--color-accent) 36px, var(--color-link) 36px, var(--color-link) 54px, var(--color-action) 54px, var(--color-action) 72px); }
 
   @keyframes home-block-drift-1 {
-    0%   { transform: rotate(-2deg) translate(0, 0); }
-    20%  { transform: rotate(-1deg) translate(6px, -6px); }
-    40%  { transform: rotate(-4deg) translate(-6px, -12px); }
-    60%  { transform: rotate(1deg) translate(12px, -6px); }
-    80%  { transform: rotate(-3deg) translate(-6px, 6px); }
+    0% { transform: rotate(-2deg) translate(0, 0); }
+    20% { transform: rotate(-1deg) translate(6px, -6px); }
+    40% { transform: rotate(-4deg) translate(-6px, -12px); }
+    60% { transform: rotate(1deg) translate(12px, -6px); }
+    80% { transform: rotate(-3deg) translate(-6px, 6px); }
     100% { transform: rotate(-2deg) translate(0, 0); }
   }
 
   @keyframes home-block-drift-2 {
-    0%   { transform: translateY(20px) rotate(1deg); }
-    20%  { transform: translate(-6px, 12px) rotate(3deg); }
-    40%  { transform: translate(6px, 6px) rotate(0deg); }
-    60%  { transform: translate(-12px, 24px) rotate(2deg); }
-    80%  { transform: translate(6px, 18px) rotate(-1deg); }
-    100% { transform: translateY(20px) rotate(1deg); }
+    0% { transform: translateY(12px) rotate(1deg); }
+    20% { transform: translate(-6px, 8px) rotate(3deg); }
+    40% { transform: translate(6px, 4px) rotate(0deg); }
+    60% { transform: translate(-12px, 16px) rotate(2deg); }
+    80% { transform: translate(6px, 12px) rotate(-1deg); }
+    100% { transform: translateY(12px) rotate(1deg); }
   }
 
   @keyframes home-block-drift-3 {
-    0%   { transform: translateY(-10px) rotate(0.5deg); }
-    20%  { transform: translate(12px, -18px) rotate(-1.5deg); }
-    40%  { transform: translate(-6px, -6px) rotate(2deg); }
-    60%  { transform: translate(6px, -24px) rotate(-0.5deg); }
-    80%  { transform: translate(-12px, -6px) rotate(2.5deg); }
-    100% { transform: translateY(-10px) rotate(0.5deg); }
+    0% { transform: translateY(-8px) rotate(0.5deg); }
+    20% { transform: translate(12px, -14px) rotate(-1.5deg); }
+    40% { transform: translate(-6px, -4px) rotate(2deg); }
+    60% { transform: translate(6px, -18px) rotate(-0.5deg); }
+    80% { transform: translate(-12px, -4px) rotate(2.5deg); }
+    100% { transform: translateY(-8px) rotate(0.5deg); }
   }
 
   @keyframes home-block-drift-4 {
-    0%   { transform: rotate(-1deg) translate(0, 0); }
-    25%  { transform: rotate(1deg) translate(-6px, -12px); }
-    50%  { transform: rotate(-3deg) translate(12px, -6px); }
-    75%  { transform: rotate(2deg) translate(-6px, 12px); }
+    0% { transform: rotate(-1deg) translate(0, 0); }
+    25% { transform: rotate(1deg) translate(-6px, -10px); }
+    50% { transform: rotate(-3deg) translate(12px, -5px); }
+    75% { transform: rotate(2deg) translate(-6px, 10px); }
     100% { transform: rotate(-1deg) translate(0, 0); }
   }
 
-
-  .media-links {
-    display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
+  @keyframes home-file-note-hop-1 {
+    0% { transform: rotate(-0.6deg) translate(0, 0); }
+    20% { transform: rotate(1deg) translate(10px, -12px); }
+    42% { transform: rotate(-2deg) translate(-8px, -6px); }
+    68% { transform: rotate(0.5deg) translate(8px, 10px); }
+    100% { transform: rotate(-0.6deg) translate(0, 0); }
   }
 
-  .home-media-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-5);
+  @keyframes home-file-note-hop-2 {
+    0% { transform: rotate(0.45deg) translate(0, 0); }
+    25% { transform: rotate(-1.4deg) translate(-10px, 11px); }
+    50% { transform: rotate(1.8deg) translate(12px, -7px); }
+    75% { transform: rotate(-0.2deg) translate(-6px, -13px); }
+    100% { transform: rotate(0.45deg) translate(0, 0); }
   }
 
-  .home-media-card {
-    --status-color: var(--color-border);
-    display: grid;
-    grid-template-rows: auto 1fr;
-    min-height: 100%;
-    color: var(--color-text);
-    text-decoration: none;
-    background: var(--color-surface);
-    border: var(--border-thick);
-    box-shadow: var(--shadow-md);
-    position: relative;
-    transform: rotate(var(--home-media-rotate, 0deg));
-    overflow: hidden;
-    transition: transform var(--dur-fast) var(--steps-small), box-shadow var(--dur-fast) var(--steps-small);
+  @keyframes home-file-note-hop-3 {
+    0% { transform: rotate(-0.6deg) translate(0, 0); }
+    22% { transform: rotate(1.5deg) translate(12px, 9px); }
+    48% { transform: rotate(-1.2deg) translate(-13px, -10px); }
+    74% { transform: rotate(0.2deg) translate(5px, -15px); }
+    100% { transform: rotate(-0.6deg) translate(0, 0); }
   }
 
+  @keyframes home-file-note-hop-4 {
+    0% { transform: rotate(0.45deg) translate(0, 0); }
+    25% { transform: rotate(1.2deg) translate(-12px, -9px); }
+    50% { transform: rotate(-1.8deg) translate(10px, 12px); }
+    75% { transform: rotate(0.9deg) translate(15px, -5px); }
+    100% { transform: rotate(0.45deg) translate(0, 0); }
+  }
+  .section { padding: var(--space-16) 0; }
+  .section--paper { background: var(--color-paper); border-block: var(--border-thick); }
+  .section--compact { padding-top: 0; }
+  .section__header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-10); gap: var(--space-4); }
+  .section__header h2 { margin-bottom: 0; }
+  .section__eyebrow { margin-bottom: var(--space-3); }
+  .empty-state { text-align: center; padding: var(--space-16); }
+  .topic-cloud { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .home-index-card { min-height: 220px; }
+  .home-index-card__code { display: inline-block; margin-bottom: var(--space-5); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 800; background: var(--color-border); color: var(--color-surface); padding: var(--space-1) var(--space-2); }
+  .media-links { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .home-media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5); }
+  .home-media-card { --status-color: var(--color-border); display: grid; grid-template-rows: auto 1fr; min-height: 100%; color: var(--color-text); text-decoration: none; background: var(--color-surface); border: var(--border-thick); box-shadow: var(--shadow-md); position: relative; transform: rotate(var(--home-media-rotate, 0deg)); overflow: hidden; transition: transform var(--dur-fast) var(--steps-small), box-shadow var(--dur-fast) var(--steps-small); }
   .home-media-card--done { --status-color: var(--color-accent); }
   .home-media-card--doing { --status-color: var(--color-action); }
   .home-media-card--wish { --status-color: var(--color-link); }
   .home-media-card--paused { --status-color: var(--color-text-muted); }
-
-  .home-media-card:hover {
-    color: var(--color-text);
-    text-decoration: none;
-    transform: rotate(0deg) translate(-4px, -4px);
-    box-shadow: 12px 12px 0 0 var(--color-border), 6px 6px 0 0 var(--status-color);
-  }
-
-  .home-media-card__kind {
-    position: absolute;
-    top: var(--space-2);
-    left: var(--space-2);
-    z-index: 2;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 800;
-    background: var(--status-color);
-    color: var(--color-border);
-    border: var(--border-thin);
-    padding: 2px var(--space-2);
-  }
-
-  .home-media-card--doing .home-media-card__kind,
-  .home-media-card--wish .home-media-card__kind,
-  .home-media-card--paused .home-media-card__kind {
-    color: var(--color-surface);
-  }
-
-  .home-media-card__cover {
-    aspect-ratio: 4 / 3;
-    border-bottom: var(--border-thick);
-    background: var(--color-base);
-    overflow: hidden;
-  }
-
-  .home-media-card__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .home-media-card__cover span {
-    height: 100%;
-    display: grid;
-    place-items: center;
-    font-family: var(--font-display);
-    font-size: var(--text-4xl);
-  }
-
-  .home-media-card__body {
-    padding: var(--space-4);
-  }
-
-  .home-media-card__body h3 {
-    font-size: var(--text-base);
-    line-height: var(--leading-snug);
-    text-transform: none;
-    border: none;
-    padding: 0;
-    margin-bottom: var(--space-2);
-  }
-
-  .home-media-card__body p {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-  }
-  @media (max-width: 768px) {
-    .home-hero__grid {
-      grid-template-columns: 1fr;
-      padding-top: var(--space-10);
-    }
-
-    .home-hero__visual {
-      min-height: 220px;
-    }
-
-    .section__header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-
-  @media (max-width: 520px) {
-    .home-media-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .home-hero__block {
-      animation: none;
-    }
-  }
+  .home-media-card:hover { color: var(--color-text); text-decoration: none; transform: rotate(0deg) translate(-4px, -4px); box-shadow: 12px 12px 0 0 var(--color-border), 6px 6px 0 0 var(--status-color); }
+  .home-media-card__kind { position: absolute; top: var(--space-2); left: var(--space-2); z-index: 2; font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 800; background: var(--status-color); color: var(--color-border); border: var(--border-thin); padding: 2px var(--space-2); }
+  .home-media-card--doing .home-media-card__kind, .home-media-card--wish .home-media-card__kind, .home-media-card--paused .home-media-card__kind { color: var(--color-surface); }
+  .home-media-card__cover { aspect-ratio: 4 / 3; border-bottom: var(--border-thick); background: var(--color-base); overflow: hidden; }
+  .home-media-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+  .home-media-card__cover span { height: 100%; display: grid; place-items: center; font-family: var(--font-display); font-size: var(--text-4xl); }
+  .home-media-card__body { padding: var(--space-4); }
+  .home-media-card__body h3 { font-size: var(--text-base); line-height: var(--leading-snug); text-transform: none; border: none; padding: 0; margin-bottom: var(--space-2); }
+  .home-media-card__body p { margin: 0; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted); }
+  @media (max-width: 980px) { .home-hero__grid { grid-template-columns: 1fr; padding-top: var(--space-10); } .home-archive-wall { transform: none; } .home-media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 768px) { .section__header { flex-direction: column; align-items: flex-start; } }
+  @media (max-width: 560px) { .home-motion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-archive-wall__grid, .home-media-grid { grid-template-columns: 1fr; } .home-file-note { min-height: 124px; } }
+  @media (prefers-reduced-motion: reduce) { .home-file-note, .home-motion-block { animation: none; } }
 </style>
+
 
 

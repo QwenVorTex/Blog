@@ -164,7 +164,33 @@ const articleStructuredData = {
 
   .post__content {
     font-size: var(--text-base);
-    line-height: var(--leading-normal);
+    line-height: 1.78;
+  }
+
+  .post__content :global(p) {
+    margin-bottom: var(--space-6);
+  }
+
+  .post__content :global(a) {
+    word-break: break-word;
+  }
+
+  .post__content :global(blockquote) {
+    margin: var(--space-8) 0;
+    background: var(--color-paper);
+    font-style: normal;
+  }
+
+  .post__content :global(pre) {
+    margin: var(--space-8) 0;
+  }
+
+  .post__content :global(figcaption) {
+    margin-top: calc(-1 * var(--space-5));
+    margin-bottom: var(--space-8);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
   }
 
   .post__content :global(h2) {
@@ -236,6 +262,18 @@ const articleStructuredData = {
     }
     .post__title {
       font-size: var(--text-3xl);
+      max-width: 100%;
+    }
+
+    .post__body {
+      padding-top: var(--space-8);
+    }
+
+    .post__content {
+      line-height: 1.7;
     }
   }
 </style>
+
+
+
