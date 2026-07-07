@@ -5,9 +5,9 @@ import { siteConfig } from '@/config/site';
 
 /** 个人时间线 — 追加对象即可添加新节点 */
 const timeline = [
-  { year: "2024", title: "大学开始", desc: "进入华中师范大学，学习计算机科学与技术。" },
+  { year: "2024", title: "大学生活", desc: "进入华中师范大学，学习计算机科学与技术。" },
   { year: "2025", title: "加入物联网协会", desc: "学习 UI/UX 设计，后端技术" },
-  { year: "2026", title: "Digital Brutalism", desc: "创建了这个博客，用代码诠释「不对称的秩序」。" },
+  { year: "2026", title: "Digital Brutalism", desc: "搭建博客，用代码诠释「不对称的秩序」。" },
 ];
 
 const socialLinks = [
@@ -17,7 +17,7 @@ const socialLinks = [
 ].filter((item) => item.href);
 const profileFacts = [
   { label: '身份', value: siteConfig.author.role },
-  { label: '位置', value: '华师 / 互联网角落' },
+  { label: '位置', value: '互联网角落' },
   { label: '状态', value: '低功耗运行中' },
 ];
 ---
@@ -30,7 +30,7 @@ const profileFacts = [
         <span class="text-giant about__bg-text" aria-hidden="true">ME</span>
         <p class="text-label about__eyebrow anim-enter">个人档案 / Owner file</p>
         <h1 class="text-display anim-enter anim-delay-1">关于</h1>
-        <p class="about__intro anim-enter anim-delay-2">这里不是正式简历，是一张贴在墙上的个人说明书。</p>
+        <p class="about__intro anim-enter anim-delay-2">这里是我的个人说明书。</p>
       </header>
 
       <div class="about__grid">
@@ -71,7 +71,7 @@ const profileFacts = [
             ))}
           </div>
 
-          {socialLinks.length === 0 && <p class="about__pending">真实社交链接待补充，当前先隐藏占位链接。</p>}
+          {socialLinks.length === 0 && <p class="about__pending">社交链接待补充，当前先隐藏占位链接。</p>}
 
           <div class="about__stack">
             <h3>技术栈</h3>
