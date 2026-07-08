@@ -291,7 +291,6 @@
     let pressed = false;
     let mode = 'default';
     let zone = 'default';
-    let rafId = 0;
     let lastLabel = '';
     let idleTimer = 0;
 
@@ -342,7 +341,7 @@
     };
 
     const render = () => {
-      rafId = window.requestAnimationFrame(render);
+      window.requestAnimationFrame(render);
 
       const coreFactor = pressed
         ? 0.16
@@ -418,7 +417,7 @@
     window.addEventListener('blur', hideCursor);
     document.documentElement.addEventListener('mouseleave', hideCursor);
 
-    rafId = window.requestAnimationFrame(render);
+    window.requestAnimationFrame(render);
   }
 
   initBrutalistCursor();

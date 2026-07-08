@@ -380,15 +380,22 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
 
     if (!toggle || !menu || toggle.dataset.ready === 'true') return;
     toggle.dataset.ready = 'true';
+    const mobileLinks = Array.from(menu.querySelectorAll('a'));
 
-    const setMenuOpen = (open) => {
+    const setMenuOpen = (open: boolean) => {
       menu.hidden = !open;
       menu.classList.toggle('is-open', open);
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+
+      if (open) {
+        window.requestAnimationFrame(() => mobileLinks[0]?.focus());
+      } else if (document.activeElement instanceof Node && menu.contains(document.activeElement)) {
+        toggle.focus();
+      }
     };
 
-    const setDropdownOpen = (open) => {
+    const setDropdownOpen = (open: boolean) => {
       if (!dropdownRoot || !dropdownTrigger || !dropdownMenu) return;
       dropdownRoot.classList.toggle('is-open', open);
       dropdownTrigger.setAttribute('aria-expanded', String(open));
@@ -396,6 +403,10 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
 
     toggle.addEventListener('click', () => {
       setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    mobileLinks.forEach((link) => {
+      link.addEventListener('click', () => setMenuOpen(false));
     });
 
     dropdownTrigger?.addEventListener('click', () => {

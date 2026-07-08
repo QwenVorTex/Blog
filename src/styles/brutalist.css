@@ -29,12 +29,12 @@
               border-color var(--dur-instant) var(--steps-micro);
 }
 
-.card:hover {
+.card--interactive:hover {
   transform: translate(-4px, -4px);
   box-shadow: 12px 12px 0px 0px var(--color-border);
 }
 
-.card:active {
+.card--interactive:active {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px 0px var(--color-border);
 }
@@ -57,7 +57,7 @@
   box-shadow: none;
 }
 
-.card--flat:hover {
+.card--flat.card--interactive:hover {
   box-shadow: var(--shadow-md);
 }
 
@@ -250,6 +250,10 @@
   animation: marquee-scroll 20s steps(80, end) infinite;
 }
 
+.marquee-track:hover .marquee-content {
+  animation-play-state: paused;
+}
+
 @keyframes marquee-scroll {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -322,4 +326,10 @@
   .grid--asymmetric,
   .grid--asymmetric-reverse { grid-template-columns: 1fr; }
   .card { padding: var(--space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-content {
+    animation: none;
+  }
 }

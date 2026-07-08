@@ -176,7 +176,7 @@ const allTags = getTagStats(allPosts);
     const cards = Array.from(document.querySelectorAll('#posts-grid > div'));
     const params = new URLSearchParams(window.location.search);
 
-    const applyFilter = (tag) => {
+    const applyFilter = (tag: string) => {
       buttons.forEach((button) => {
         button.classList.toggle('is-active', button.getAttribute('data-tag-filter') === tag);
       });
