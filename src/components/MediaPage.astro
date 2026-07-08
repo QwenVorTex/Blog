@@ -44,10 +44,21 @@ const averageScore = ratedItems.length > 0
   ? (ratedItems.reduce((sum, item) => sum + item.myRate, 0) / ratedItems.length).toFixed(1)
   : 'NA';
 const latestItems = items.slice(0, 3);
+const initialMediaCount = 48;
+const initialItems = items.slice(0, initialMediaCount);
+const mediaDataSrc = `/media/${pageKey}.json`;
 ---
 
 <BaseLayout title={title} description={description}>
-  <section class="media-page" data-cursor-zone="media">
+  <section
+    class="media-page"
+    data-cursor-zone="media"
+    data-media-page
+    data-media-key={pageKey}
+    data-media-page-size={initialMediaCount}
+    data-media-cover-aspect={coverAspect}
+    data-media-src={mediaDataSrc}
+  >
     <div class="container">
       <header class="media-page__header">
         <span class="text-giant media-page__bg-text" aria-hidden="true">{glyph}</span>
@@ -98,6 +109,7 @@ const latestItems = items.slice(0, 3);
       <SortControls
         target={`#${gridId}`}
         emptyTarget={`#${emptyId}`}
+        external
         options={[
           { value: 'default', label: '时间' },
           { value: 'alpha', label: '首字母' },
@@ -108,10 +120,24 @@ const latestItems = items.slice(0, 3);
       />
 
       <div class="media-grid" id={gridId}>
-        {items.map((item, index) => (
-          <MediaCard item={item} index={index} coverAspect={coverAspect} />
+        {initialItems.map((item, index) => (
+          <MediaCard
+            item={item}
+            index={index}
+            coverAspect={coverAspect}
+            loading={index < 8 ? 'eager' : 'lazy'}
+            fetchPriority={index < 4 ? 'high' : 'auto'}
+          />
         ))}
       </div>
+
+      <div class="media-page__sentinel" data-media-sentinel hidden>
+        <span class="media-page__sentinel-label" data-media-sentinel-label>下一批</span>
+      </div>
+      <p class="sr-only" data-media-live aria-live="polite"></p>
+      <button class="media-page__more" type="button" data-media-load-more hidden>
+        继续加载
+      </button>
 
       <div class="media-page__empty card card--flat" id={emptyId} hidden>
         <p class="media-page__empty-title">NO MATCH</p>
@@ -253,6 +279,85 @@ const latestItems = items.slice(0, 3);
     align-items: start;
   }
 
+  .media-page__sentinel {
+    display: grid;
+    place-items: center;
+    gap: var(--space-3);
+    min-height: var(--space-16);
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+  }
+
+  .media-page__sentinel::before {
+    content: '';
+    display: block;
+    width: 4.5rem;
+    height: 0.75rem;
+    margin: var(--space-6) auto 0;
+    border: var(--border-medium);
+    background:
+      repeating-linear-gradient(
+        90deg,
+        var(--color-border) 0 0.5rem,
+        var(--color-accent) 0.5rem 1rem
+      );
+    box-shadow: var(--shadow-sm);
+  }
+
+  .media-page__sentinel-label {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-medium);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .media-page__sentinel.is-loading .media-page__sentinel-label {
+    background: var(--color-accent);
+  }
+
+  .media-page__sentinel[hidden] {
+    display: none;
+  }
+
+  .media-page__more {
+    display: block;
+    margin: var(--space-8) auto 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 800;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    padding: var(--space-3) var(--space-8);
+    border: var(--border-thick);
+    background: var(--color-accent);
+    color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--dur-fast) var(--steps-small),
+      box-shadow var(--dur-fast) var(--steps-small);
+  }
+
+  .media-page__more:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .media-page__more:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 0 var(--color-border);
+  }
+
+  .media-page__more[hidden] {
+    display: none;
+  }
+
   .media-page__empty {
     margin-top: var(--space-8);
     text-align: center;
@@ -315,3 +420,311 @@ const latestItems = items.slice(0, 3);
     }
   }
 </style>
+
+<script>
+  interface ClientMediaItem {
+    bangumiId: number;
+    name: string;
+    nameCn: string;
+    label: string;
+    url: string;
+    date: string;
+    year: string;
+    score: number;
+    rank: number;
+    tags: string[];
+    cover: string;
+    coverLarge?: string;
+    coverSrcSet?: string;
+    coverWidth?: number;
+    coverHeight?: number;
+    collectionType: string;
+    myRate: number;
+    statusTone?: string;
+    displayScore?: string;
+    searchText: string;
+  }
+
+  interface SortState {
+    mode: string;
+    ascending: boolean;
+    searchQuery: string;
+    activeFilter: string;
+  }
+
+  const mediaRotations = [-0.4, 0.3, -0.7, 0.5, -0.2, 0.1];
+
+  function appendText(parent: HTMLElement, tagName: string, className: string, text: string) {
+    const element = document.createElement(tagName);
+    if (className) element.className = className;
+    element.textContent = text;
+    parent.appendChild(element);
+    return element;
+  }
+
+  function createMediaCard(item: ClientMediaItem, index: number, coverAspect: string) {
+    const displayTitle = item.nameCn || item.name;
+    const originalTitle = item.nameCn && item.name !== item.nameCn ? item.name : '';
+    const scoreText = item.myRate > 0 ? String(item.myRate) : item.score > 0 ? item.score.toFixed(1) : 'NA';
+    const scoreLabel = item.myRate > 0 ? '我的评分' : item.score > 0 ? 'Bangumi 评分' : '暂无评分';
+
+    const anchor = document.createElement('a');
+    anchor.href = item.url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.className = `media-card media-card--${coverAspect} media-card--${item.statusTone || 'neutral'} scroll-reveal is-visible`;
+    anchor.style.setProperty('--media-rotate', `${mediaRotations[index % mediaRotations.length]}deg`);
+    anchor.dataset.sortName = item.label;
+    anchor.dataset.sortSearch = item.searchText;
+    anchor.dataset.sortDate = item.date || item.year;
+    anchor.dataset.sortScore = String(item.myRate || item.score || 0);
+    anchor.dataset.sortStatus = item.collectionType;
+
+    appendText(anchor, 'div', 'media-card__index', String(index + 1).padStart(2, '0')).setAttribute('aria-hidden', 'true');
+
+    const cover = document.createElement('div');
+    cover.className = 'media-card__cover';
+    if (item.cover) {
+      const img = document.createElement('img');
+      img.src = item.cover;
+      if (item.coverSrcSet) {
+        img.srcset = item.coverSrcSet;
+        img.sizes = coverAspect === 'poster'
+          ? '(max-width: 640px) 50vw, (max-width: 1200px) 25vw, 220px'
+          : '(max-width: 640px) 90vw, (max-width: 1200px) 33vw, 280px';
+      }
+      if (item.coverWidth) img.width = item.coverWidth;
+      if (item.coverHeight) img.height = item.coverHeight;
+      img.alt = `${displayTitle} 封面`;
+      img.loading = index < 8 ? 'eager' : 'lazy';
+      img.decoding = 'async';
+      if (index < 4) img.fetchPriority = 'high';
+      img.className = 'media-card__img';
+      cover.appendChild(img);
+    } else {
+      const fallback = appendText(cover, 'div', 'media-card__fallback', displayTitle.charAt(0));
+      fallback.setAttribute('aria-label', `${displayTitle} 无封面`);
+    }
+    appendText(cover, 'span', 'media-card__year', item.year || '----');
+    appendText(cover, 'span', 'media-card__score', scoreText).setAttribute('aria-label', scoreLabel);
+    anchor.appendChild(cover);
+
+    const body = document.createElement('div');
+    body.className = 'media-card__body';
+    const statusRow = document.createElement('div');
+    statusRow.className = 'media-card__status-row';
+    appendText(statusRow, 'span', 'media-card__status', item.collectionType || '未知');
+    if (item.rank > 0) appendText(statusRow, 'span', 'media-card__rank', `#${item.rank}`);
+    body.appendChild(statusRow);
+    appendText(body, 'h3', 'media-card__name', displayTitle);
+    if (originalTitle) appendText(body, 'p', 'media-card__label', originalTitle);
+    if (item.tags.length > 0) {
+      const tags = document.createElement('div');
+      tags.className = 'media-card__tags';
+      tags.setAttribute('aria-label', '标签');
+      item.tags.slice(0, 3).forEach((tag) => appendText(tags, 'span', 'media-card__tag', tag));
+      body.appendChild(tags);
+    }
+    anchor.appendChild(body);
+
+    return anchor;
+  }
+
+  function getEffectiveOrder(state: SortState) {
+    const defaultAsc = state.mode === 'alpha';
+    return state.ascending ? !defaultAsc : defaultAsc;
+  }
+
+  function filterAndSort(items: ClientMediaItem[], state: SortState) {
+    const query = state.searchQuery.toLowerCase();
+    const filtered = items.filter((item) => {
+      const nameMatch = !query || item.searchText.toLowerCase().includes(query);
+      const statusMatch = !state.activeFilter || item.collectionType === state.activeFilter;
+      return nameMatch && statusMatch;
+    });
+    const isAsc = getEffectiveOrder(state);
+
+    return filtered.sort((a, b) => {
+      let cmp = 0;
+      if (state.mode === 'alpha') {
+        cmp = a.label.toLowerCase().localeCompare(b.label.toLowerCase(), 'zh-CN');
+      } else if (state.mode === 'date') {
+        cmp = (a.date || '0').localeCompare(b.date || '0');
+      } else if (state.mode === 'score') {
+        cmp = (a.myRate || a.score || 0) - (b.myRate || b.score || 0);
+      } else {
+        cmp = 0;
+      }
+      return isAsc ? cmp : -cmp;
+    });
+  }
+
+  function readSortState(root: HTMLElement): SortState {
+    const controls = root.querySelector<HTMLElement>('.sort-controls');
+    const activeSort = controls?.querySelector<HTMLButtonElement>('.sort-controls__btn[data-sort-value].is-active');
+    const activeFilter = controls?.querySelector<HTMLButtonElement>('.sort-controls__btn[data-filter-value].is-active');
+    const orderButton = controls?.querySelector<HTMLButtonElement>('.sort-controls__order');
+    const searchInput = controls?.querySelector<HTMLInputElement>('[data-sort-search]');
+
+    return {
+      mode: activeSort?.dataset.sortValue || 'default',
+      ascending: orderButton?.dataset.sortOrder === 'asc',
+      searchQuery: searchInput?.value.trim() || '',
+      activeFilter: activeFilter?.dataset.filterValue || '',
+    };
+  }
+
+  function initMediaPageRenderer() {
+    document.querySelectorAll<HTMLElement>('[data-media-page]').forEach((root) => {
+      if (root.dataset.mediaReady === 'true') return;
+      root.dataset.mediaReady = 'true';
+
+      const grid = root.querySelector<HTMLElement>('.media-grid');
+      const controls = root.querySelector<HTMLElement>('.sort-controls');
+      const count = controls?.querySelector<HTMLElement>('[data-sort-count]');
+      const empty = root.querySelector<HTMLElement>('.media-page__empty');
+      const more = root.querySelector<HTMLButtonElement>('[data-media-load-more]');
+      const sentinel = root.querySelector<HTMLElement>('[data-media-sentinel]');
+      const sentinelLabel = root.querySelector<HTMLElement>('[data-media-sentinel-label]');
+      const live = root.querySelector<HTMLElement>('[data-media-live]');
+      const dataSrc = root.dataset.mediaSrc;
+      if (!dataSrc || !grid) return;
+
+      const pageSize = Number(root.dataset.mediaPageSize || 48);
+      const coverAspect = root.dataset.mediaCoverAspect || 'poster';
+      const hasAutoLoad = 'IntersectionObserver' in window;
+      let items: ClientMediaItem[] = [];
+      let currentSorted: ClientMediaItem[] = [];
+      let dataReady = false;
+      let isAutoLoading = false;
+      let visibleLimit = grid.children.length || pageSize;
+      let state = readSortState(root);
+
+      const isDefaultState = () => (
+        state.mode === 'default'
+        && !state.ascending
+        && !state.searchQuery
+        && !state.activeFilter
+      );
+
+      const updatePaginationUi = (sortedLength: number, announce = false) => {
+        const visibleCount = Math.min(visibleLimit, sortedLength);
+        const remaining = Math.max(sortedLength - visibleCount, 0);
+        const canLoadMore = remaining > 0;
+
+        if (count) {
+          count.textContent = sortedLength === items.length ? `${items.length} 项` : `${sortedLength} / ${items.length}`;
+        }
+        if (empty) {
+          empty.hidden = sortedLength !== 0;
+        }
+        if (sentinel) {
+          sentinel.hidden = !hasAutoLoad || !canLoadMore;
+          if (!canLoadMore) sentinel.classList.remove('is-loading');
+        }
+        if (sentinelLabel) {
+          sentinelLabel.textContent = canLoadMore
+            ? `下一批 ${Math.min(pageSize, remaining)} / 剩余 ${remaining}`
+            : '全部已显示';
+        }
+        if (more) {
+          more.hidden = hasAutoLoad || !canLoadMore;
+          more.textContent = `继续加载 ${Math.min(pageSize, remaining)} 项`;
+        }
+        if (announce && live) {
+          live.textContent = canLoadMore
+            ? `已加载 ${visibleCount} / ${sortedLength} 项`
+            : `已加载全部 ${sortedLength} 项`;
+        }
+      };
+
+      const replaceVisibleGrid = (announce = false) => {
+        visibleLimit = Math.min(visibleLimit, currentSorted.length);
+        const visible = currentSorted.slice(0, visibleLimit);
+        grid.replaceChildren(...visible.map((item, index) => createMediaCard(item, index, coverAspect)));
+        updatePaginationUi(currentSorted.length, announce);
+      };
+
+      const resetGrid = (announce = false) => {
+        currentSorted = filterAndSort([...items], state);
+        visibleLimit = Math.min(pageSize, currentSorted.length);
+        replaceVisibleGrid(announce);
+      };
+
+      const loadNextPage = () => {
+        if (!dataReady) return false;
+        const start = Math.min(visibleLimit, currentSorted.length);
+        const end = Math.min(start + pageSize, currentSorted.length);
+        if (start >= end) return false;
+
+        const nextCards = currentSorted
+          .slice(start, end)
+          .map((item, offset) => createMediaCard(item, start + offset, coverAspect));
+
+        grid.append(...nextCards);
+        visibleLimit = end;
+        updatePaginationUi(currentSorted.length, true);
+        return true;
+      };
+
+      controls?.addEventListener('sort-controls:change', (event) => {
+        const customEvent = event as CustomEvent<SortState>;
+        state = customEvent.detail;
+        if (dataReady) resetGrid();
+      });
+
+      more?.addEventListener('click', () => {
+        loadNextPage();
+      });
+
+      if (sentinel && hasAutoLoad) {
+        const observer = new IntersectionObserver((entries) => {
+          if (!entries.some((entry) => entry.isIntersecting) || isAutoLoading) return;
+          if (!dataReady || visibleLimit >= currentSorted.length) return;
+
+          isAutoLoading = true;
+          sentinel.classList.add('is-loading');
+          if (sentinelLabel) {
+            sentinelLabel.textContent = `加载 ${Math.min(pageSize, currentSorted.length - visibleLimit)} 项`;
+          }
+
+          window.requestAnimationFrame(() => {
+            loadNextPage();
+            sentinel.classList.remove('is-loading');
+            isAutoLoading = false;
+          });
+        }, {
+          rootMargin: '96px 0px',
+          threshold: 0.1,
+        });
+
+        observer.observe(sentinel);
+      }
+
+      fetch(dataSrc)
+        .then((response) => {
+          if (!response.ok) throw new Error(`Failed to load ${dataSrc}`);
+          return response.json() as Promise<ClientMediaItem[]>;
+        })
+        .then((nextItems) => {
+          items = nextItems;
+          dataReady = true;
+          currentSorted = filterAndSort([...items], state);
+          visibleLimit = Math.min(pageSize, currentSorted.length);
+          if (isDefaultState() && grid.children.length === visibleLimit) {
+            updatePaginationUi(currentSorted.length);
+          } else {
+            replaceVisibleGrid();
+          }
+        })
+        .catch(() => {
+          if (count) count.textContent = '';
+          if (more) more.hidden = true;
+          if (sentinel) sentinel.hidden = true;
+        });
+    });
+  }
+
+  initMediaPageRenderer();
+  document.addEventListener('astro:page-load', initMediaPageRenderer);
+</script>

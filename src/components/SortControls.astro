@@ -8,16 +8,22 @@ interface Props {
   emptyTarget?: string;
   options?: Array<{ value: string; label: string }>;
   filters?: Array<{ value: string; label: string }>;
+  external?: boolean;
 }
 
 const { target, emptyTarget, options = [
   { value: 'default', label: '默认' },
   { value: 'alpha',   label: '首字母' },
   { value: 'date',    label: '时间' },
-], filters = [] } = Astro.props;
+], filters = [], external = false } = Astro.props;
 ---
 
-<div class="sort-controls scroll-reveal" data-sort-target={target} data-sort-empty-target={emptyTarget}>
+<div
+  class="sort-controls scroll-reveal"
+  data-sort-target={target}
+  data-sort-empty-target={emptyTarget}
+  data-sort-external={external ? 'true' : undefined}
+>
   {filters.length > 0 && (
     <div class="sort-controls__row sort-controls__row--filters">
       <span class="sort-controls__label">筛选</span>
@@ -237,6 +243,8 @@ const { target, emptyTarget, options = [
       if (!targetSelector) return;
       const container = document.querySelector<HTMLElement>(targetSelector);
       if (!container) return;
+      const sortContainer = container;
+      const externalMode = ctrl.dataset.sortExternal === 'true';
 
       const emptyEl = ctrl.dataset.sortEmptyTarget
         ? document.querySelector<HTMLElement>(ctrl.dataset.sortEmptyTarget)
@@ -254,6 +262,18 @@ const { target, emptyTarget, options = [
       let ascending = false;
       let searchQuery = '';
       let activeFilter = '';
+
+      function emitState() {
+        ctrl.dispatchEvent(new CustomEvent('sort-controls:change', {
+          bubbles: true,
+          detail: {
+            mode: currentMode,
+            ascending,
+            searchQuery,
+            activeFilter,
+          },
+        }));
+      }
 
       function getEffectiveOrder() {
         const defaultAsc = currentMode === 'alpha';
@@ -278,6 +298,11 @@ const { target, emptyTarget, options = [
       }
 
       function applySortAndFilter() {
+        if (externalMode) {
+          emitState();
+          return;
+        }
+
         const query = searchQuery.toLowerCase();
 
         let visibleCount = 0;
@@ -329,8 +354,8 @@ const { target, emptyTarget, options = [
             break;
         }
 
-        sorted.forEach((el) => container.appendChild(el));
-        hiddenItems.forEach((el) => container.appendChild(el));
+        sorted.forEach((el) => sortContainer.appendChild(el));
+        hiddenItems.forEach((el) => sortContainer.appendChild(el));
 
         updateCount(visibleCount, allItems.length);
       }
@@ -368,7 +393,11 @@ const { target, emptyTarget, options = [
         });
       }
 
-      updateCount(allItems.length, allItems.length);
+      if (externalMode) {
+        emitState();
+      } else {
+        updateCount(allItems.length, allItems.length);
+      }
     });
   }
 
