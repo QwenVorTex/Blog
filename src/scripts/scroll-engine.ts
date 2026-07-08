@@ -15,7 +15,9 @@ export function initScrollEngine() {
   let currentScrollY = 0;
   let rafId: number | null = null;
   let isEnabled = true;
+  let isAnimating = false;
   let isInternalScroll = false;
+  let lastAppliedScrollY = 0;
   let internalScrollFrame: number | null = null;
 
   function getMaxScroll() {
@@ -65,9 +67,13 @@ export function initScrollEngine() {
   }
 
   function syncWithNativeScroll() {
-    if (isInternalScroll) return;
-    currentScrollY = window.scrollY;
+    const scrollY = window.scrollY;
+    if (isInternalScroll && Math.abs(scrollY - lastAppliedScrollY) <= 1) return;
+
+    currentScrollY = scrollY;
     targetScrollY = currentScrollY;
+    isAnimating = false;
+    isInternalScroll = false;
   }
 
   function applyScroll(nextY: number) {
@@ -75,12 +81,20 @@ export function initScrollEngine() {
       cancelAnimationFrame(internalScrollFrame);
     }
 
+    lastAppliedScrollY = Math.round(nextY);
     isInternalScroll = true;
-    window.scrollTo(0, Math.round(nextY));
+    window.scrollTo(0, lastAppliedScrollY);
     internalScrollFrame = requestAnimationFrame(() => {
       isInternalScroll = false;
       internalScrollFrame = null;
     });
+  }
+
+  function setTargetScroll(nextY: number) {
+    const nextTarget = clamp(nextY, 0, getMaxScroll());
+    if (nextTarget === targetScrollY) return;
+    targetScrollY = nextTarget;
+    isAnimating = true;
   }
 
   function onWheel(e: WheelEvent) {
@@ -91,21 +105,25 @@ export function initScrollEngine() {
     e.preventDefault();
 
     const delta = e.deltaY * SCROLL_SPEED;
-    targetScrollY = clamp(targetScrollY + delta, 0, getMaxScroll());
+    setTargetScroll(targetScrollY + delta);
   }
 
   function tick() {
     rafId = requestAnimationFrame(tick);
+    if (!isAnimating) return;
 
     const diff = targetScrollY - currentScrollY;
 
     if (Math.abs(diff) < SNAP_THRESHOLD) {
       currentScrollY = targetScrollY;
+      isAnimating = false;
     } else {
       currentScrollY += diff * LERP_FACTOR;
     }
 
-    applyScroll(currentScrollY);
+    if (Math.abs(window.scrollY - Math.round(currentScrollY)) > 0) {
+      applyScroll(currentScrollY);
+    }
   }
 
   function onResize() {
@@ -131,27 +149,25 @@ export function initScrollEngine() {
       case 'ArrowDown':
       case 'PageDown':
         e.preventDefault();
-        targetScrollY = clamp(targetScrollY + scrollAmount * 3, 0, getMaxScroll());
+        setTargetScroll(targetScrollY + scrollAmount * 3);
         break;
       case 'ArrowUp':
       case 'PageUp':
         e.preventDefault();
-        targetScrollY = clamp(targetScrollY - scrollAmount * 3, 0, getMaxScroll());
+        setTargetScroll(targetScrollY - scrollAmount * 3);
         break;
       case 'Home':
         e.preventDefault();
-        targetScrollY = 0;
+        setTargetScroll(0);
         break;
       case 'End':
         e.preventDefault();
-        targetScrollY = getMaxScroll();
+        setTargetScroll(getMaxScroll());
         break;
       case ' ':
         e.preventDefault();
-        targetScrollY = clamp(
+        setTargetScroll(
           targetScrollY + (e.shiftKey ? -scrollAmount * 5 : scrollAmount * 5),
-          0,
-          getMaxScroll()
         );
         break;
     }
@@ -189,6 +205,7 @@ export function initScrollEngine() {
     if (!enabled) {
       currentScrollY = window.scrollY;
       targetScrollY = currentScrollY;
+      isAnimating = false;
     }
   }
 

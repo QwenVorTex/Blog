@@ -293,9 +293,69 @@
     let zone = 'default';
     let lastLabel = '';
     let idleTimer = 0;
+    let draggingScrollbar = false;
+    let scrollbarDragOffsetY = 0;
 
     const lerp = (current: number, target: number, factor: number) =>
       current + (target - current) * factor;
+
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
+
+    const getVerticalScrollbarBounds = () => {
+      const gutterWidth = window.innerWidth - document.documentElement.clientWidth;
+      if (gutterWidth <= 0) return null;
+
+      return {
+        left: document.documentElement.clientWidth,
+        width: gutterWidth,
+      };
+    };
+
+    const getVerticalScrollbarThumb = () => {
+      const bounds = getVerticalScrollbarBounds();
+      const scrollHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const maxScroll = scrollHeight - viewportHeight;
+
+      if (!bounds || maxScroll <= 0) return null;
+
+      const height = Math.max(24, (viewportHeight / scrollHeight) * viewportHeight);
+      const travel = viewportHeight - height;
+      const top = (window.scrollY / maxScroll) * travel;
+
+      return {
+        top,
+        height,
+        x: bounds.left + bounds.width / 2,
+      };
+    };
+
+    const isVerticalScrollbarEvent = (event: PointerEvent | MouseEvent) => {
+      const bounds = getVerticalScrollbarBounds();
+      return Boolean(bounds && event.clientX >= bounds.left && event.clientX <= window.innerWidth);
+    };
+
+    const syncWithVerticalScrollbar = () => {
+      const thumb = getVerticalScrollbarThumb();
+      if (!thumb) return;
+
+      targetX = thumb.x;
+      targetY = clamp(thumb.top + scrollbarDragOffsetY, 0, window.innerHeight);
+      mode = 'default';
+      zone = 'default';
+      setVisibility(true);
+      hud.classList.remove('is-active');
+    };
+
+    const startScrollbarDrag = (event: PointerEvent | MouseEvent) => {
+      const thumb = getVerticalScrollbarThumb();
+
+      pressed = true;
+      draggingScrollbar = true;
+      scrollbarDragOffsetY = thumb ? clamp(event.clientY - thumb.top, 0, thumb.height) : 0;
+      syncWithVerticalScrollbar();
+    };
 
     const setVisibility = (nextVisible: boolean) => {
       visible = nextVisible;
@@ -343,7 +403,9 @@
     const render = () => {
       window.requestAnimationFrame(render);
 
-      const coreFactor = pressed
+      const coreFactor = draggingScrollbar
+        ? 0.5
+        : pressed
         ? 0.16
         : mode === 'button'
           ? 0.18
@@ -352,8 +414,8 @@
             : mode === 'link'
               ? 0.24
               : 0.28;
-      const shadowFactor = pressed ? 0.08 : mode === 'card' ? 0.1 : 0.12;
-      const hudFactor = 0.14;
+      const shadowFactor = draggingScrollbar ? 0.28 : pressed ? 0.08 : mode === 'card' ? 0.1 : 0.12;
+      const hudFactor = draggingScrollbar ? 0.35 : 0.14;
 
       coreX = lerp(coreX, targetX, coreFactor);
       coreY = lerp(coreY, targetY, coreFactor);
@@ -381,6 +443,21 @@
     const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
 
+      if (draggingScrollbar) {
+        syncWithVerticalScrollbar();
+        return;
+      }
+
+      if (isVerticalScrollbarEvent(event)) {
+        targetX = event.clientX;
+        targetY = event.clientY;
+        mode = 'default';
+        zone = 'default';
+        setVisibility(true);
+        hud.classList.remove('is-active');
+        return;
+      }
+
       targetX = event.clientX;
       targetY = event.clientY;
 
@@ -395,18 +472,38 @@
       }, IDLE_TIMEOUT);
     };
 
-    const onPointerDown = () => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+
       pressed = true;
+
+      if (isVerticalScrollbarEvent(event)) {
+        startScrollbarDrag(event);
+      }
     };
 
     const onPointerUp = () => {
       pressed = false;
+      draggingScrollbar = false;
+    };
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (!draggingScrollbar && isVerticalScrollbarEvent(event)) {
+        startScrollbarDrag(event);
+      }
+    };
+
+    const onScroll = () => {
+      if (draggingScrollbar) {
+        syncWithVerticalScrollbar();
+      }
     };
 
     const hideCursor = () => {
       window.clearTimeout(idleTimer);
       setVisibility(false);
       pressed = false;
+      draggingScrollbar = false;
       mode = 'default';
       zone = 'default';
     };
@@ -414,6 +511,9 @@
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('mousedown', onMouseDown, { passive: true, capture: true });
+    window.addEventListener('mouseup', onPointerUp, { passive: true, capture: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('blur', hideCursor);
     document.documentElement.addEventListener('mouseleave', hideCursor);
 
