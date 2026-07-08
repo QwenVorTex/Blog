@@ -42,5 +42,8 @@ Desktop.ini
 # astro
 .astro/
 
+# local generated caches
+.cache/
+
 # claude code
 CLAUDE.md

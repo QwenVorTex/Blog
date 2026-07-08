@@ -13,6 +13,11 @@ export interface MediaInfo {
   rank: number;
   tags: string[];
   cover: string;
+  coverSmall?: string;
+  coverLarge?: string;
+  coverSrcSet?: string;
+  coverWidth?: number;
+  coverHeight?: number;
   collectionType: string;
   myRate: number;
   statusTone?: 'done' | 'doing' | 'wish' | 'paused' | 'neutral';
@@ -66,6 +71,11 @@ function createNormalizer(labels: Record<string, string>, coverAspect: 'poster' 
       rank: entry.rank,
       tags: entry.tags,
       cover: entry.cover,
+      coverSmall: entry.coverSmall,
+      coverLarge: entry.coverLarge,
+      coverSrcSet: entry.coverSrcSet,
+      coverWidth: entry.coverWidth,
+      coverHeight: entry.coverHeight,
       collectionType: labels[entry.collectionType] ?? entry.collectionType,
       myRate: entry.myRate,
       statusTone: STATUS_TONES[entry.collectionType] ?? 'neutral',

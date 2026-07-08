@@ -14,12 +14,17 @@
       "孤岛惊魂",
       "育碧"
     ],
-    "cover": "/bangumi/games/105652.jpg",
+    "cover": "/bangumi/games/105652-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T16:51:36+08:00"
+    "updatedAt": "2026-06-26T16:51:36+08:00",
+    "coverSmall": "/bangumi/games/105652-sm.webp",
+    "coverLarge": "/bangumi/games/105652-lg.webp",
+    "coverSrcSet": "/bangumi/games/105652-sm.webp 420w, /bangumi/games/105652-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 221177,
@@ -36,12 +41,17 @@
       "STEAM",
       "搞笑"
     ],
-    "cover": "/bangumi/games/221177.jpg",
+    "cover": "/bangumi/games/221177-sm.webp",
     "collectionType": "done",
     "myRate": 6,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:11:49+08:00"
+    "updatedAt": "2026-06-26T14:11:49+08:00",
+    "coverSmall": "/bangumi/games/221177-sm.webp",
+    "coverLarge": "/bangumi/games/221177-lg.webp",
+    "coverSrcSet": "/bangumi/games/221177-sm.webp 420w, /bangumi/games/221177-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 223130,
@@ -58,12 +68,17 @@
       "2018",
       "XboxOne"
     ],
-    "cover": "/bangumi/games/223130.jpg",
+    "cover": "/bangumi/games/223130-sm.webp",
     "collectionType": "done",
     "myRate": 6,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:11:28+08:00"
+    "updatedAt": "2026-06-26T14:11:28+08:00",
+    "coverSmall": "/bangumi/games/223130-sm.webp",
+    "coverLarge": "/bangumi/games/223130-lg.webp",
+    "coverSrcSet": "/bangumi/games/223130-sm.webp 420w, /bangumi/games/223130-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 279216,
@@ -80,12 +95,17 @@
       "德军总部",
       "2019"
     ],
-    "cover": "/bangumi/games/279216.jpg",
+    "cover": "/bangumi/games/279216-sm.webp",
     "collectionType": "done",
     "myRate": 6,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:11:00+08:00"
+    "updatedAt": "2026-06-26T14:11:00+08:00",
+    "coverSmall": "/bangumi/games/279216-sm.webp",
+    "coverLarge": "/bangumi/games/279216-lg.webp",
+    "coverSrcSet": "/bangumi/games/279216-sm.webp 420w, /bangumi/games/279216-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 181958,
@@ -102,12 +122,17 @@
       "PC",
       "一战"
     ],
-    "cover": "/bangumi/games/181958.jpg",
+    "cover": "/bangumi/games/181958-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:10:40+08:00"
+    "updatedAt": "2026-06-26T14:10:40+08:00",
+    "coverSmall": "/bangumi/games/181958-sm.webp",
+    "coverLarge": "/bangumi/games/181958-lg.webp",
+    "coverSrcSet": "/bangumi/games/181958-sm.webp 420w, /bangumi/games/181958-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 137773,
@@ -124,12 +149,17 @@
       "PC",
       "多人"
     ],
-    "cover": "/bangumi/games/137773.jpg",
+    "cover": "/bangumi/games/137773-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:10:18+08:00"
+    "updatedAt": "2026-06-26T14:10:18+08:00",
+    "coverSmall": "/bangumi/games/137773-sm.webp",
+    "coverLarge": "/bangumi/games/137773-lg.webp",
+    "coverSrcSet": "/bangumi/games/137773-sm.webp 420w, /bangumi/games/137773-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 282732,
@@ -146,12 +176,17 @@
       "PC",
       "斯洛文尼亚"
     ],
-    "cover": "/bangumi/games/282732.jpg",
+    "cover": "/bangumi/games/282732-sm.webp",
     "collectionType": "done",
     "myRate": 6,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:09:53+08:00"
+    "updatedAt": "2026-06-26T14:09:53+08:00",
+    "coverSmall": "/bangumi/games/282732-sm.webp",
+    "coverLarge": "/bangumi/games/282732-lg.webp",
+    "coverSrcSet": "/bangumi/games/282732-sm.webp 420w, /bangumi/games/282732-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 249480,
@@ -168,12 +203,17 @@
       "TPS",
       "暗杀"
     ],
-    "cover": "/bangumi/games/249480.jpg",
+    "cover": "/bangumi/games/249480-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:09:35+08:00"
+    "updatedAt": "2026-06-26T14:09:35+08:00",
+    "coverSmall": "/bangumi/games/249480-sm.webp",
+    "coverLarge": "/bangumi/games/249480-lg.webp",
+    "coverSrcSet": "/bangumi/games/249480-sm.webp 420w, /bangumi/games/249480-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 52356,
@@ -190,12 +230,17 @@
       "CS:GO",
       "STEAM"
     ],
-    "cover": "/bangumi/games/52356.jpg",
+    "cover": "/bangumi/games/52356-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:09:19+08:00"
+    "updatedAt": "2026-06-26T14:09:19+08:00",
+    "coverSmall": "/bangumi/games/52356-sm.webp",
+    "coverLarge": "/bangumi/games/52356-lg.webp",
+    "coverSrcSet": "/bangumi/games/52356-sm.webp 420w, /bangumi/games/52356-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 216896,
@@ -212,12 +257,17 @@
       "奥日",
       "类银河战士恶魔城"
     ],
-    "cover": "/bangumi/games/216896.jpg",
+    "cover": "/bangumi/games/216896-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:08:53+08:00"
+    "updatedAt": "2026-06-26T14:08:53+08:00",
+    "coverSmall": "/bangumi/games/216896-sm.webp",
+    "coverLarge": "/bangumi/games/216896-lg.webp",
+    "coverSrcSet": "/bangumi/games/216896-sm.webp 420w, /bangumi/games/216896-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 60133,
@@ -234,12 +284,17 @@
       "FPS",
       "STEAM"
     ],
-    "cover": "/bangumi/games/60133.jpg",
+    "cover": "/bangumi/games/60133-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:08:37+08:00"
+    "updatedAt": "2026-06-26T14:08:37+08:00",
+    "coverSmall": "/bangumi/games/60133-sm.webp",
+    "coverLarge": "/bangumi/games/60133-lg.webp",
+    "coverSrcSet": "/bangumi/games/60133-sm.webp 420w, /bangumi/games/60133-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 8463,
@@ -256,12 +311,17 @@
       "PC",
       "科幻"
     ],
-    "cover": "/bangumi/games/8463.jpg",
+    "cover": "/bangumi/games/8463-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:08:16+08:00"
+    "updatedAt": "2026-06-26T14:08:16+08:00",
+    "coverSmall": "/bangumi/games/8463-sm.webp",
+    "coverLarge": "/bangumi/games/8463-lg.webp",
+    "coverSrcSet": "/bangumi/games/8463-sm.webp 420w, /bangumi/games/8463-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 490427,
@@ -278,12 +338,17 @@
       "PC",
       "战马工作室"
     ],
-    "cover": "/bangumi/games/490427.jpg",
+    "cover": "/bangumi/games/490427-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:07:54+08:00"
+    "updatedAt": "2026-06-26T14:07:54+08:00",
+    "coverSmall": "/bangumi/games/490427-sm.webp",
+    "coverLarge": "/bangumi/games/490427-lg.webp",
+    "coverSrcSet": "/bangumi/games/490427-sm.webp 420w, /bangumi/games/490427-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 279245,
@@ -300,12 +365,17 @@
       "RPG",
       "Gearbox"
     ],
-    "cover": "/bangumi/games/279245.jpg",
+    "cover": "/bangumi/games/279245-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:07:29+08:00"
+    "updatedAt": "2026-06-26T14:07:29+08:00",
+    "coverSmall": "/bangumi/games/279245-sm.webp",
+    "coverLarge": "/bangumi/games/279245-lg.webp",
+    "coverSrcSet": "/bangumi/games/279245-sm.webp 420w, /bangumi/games/279245-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 268588,
@@ -322,12 +392,17 @@
       "ACT",
       "STEAM"
     ],
-    "cover": "/bangumi/games/268588.jpg",
+    "cover": "/bangumi/games/268588-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:07:08+08:00"
+    "updatedAt": "2026-06-26T14:07:08+08:00",
+    "coverSmall": "/bangumi/games/268588-sm.webp",
+    "coverLarge": "/bangumi/games/268588-lg.webp",
+    "coverSrcSet": "/bangumi/games/268588-sm.webp 420w, /bangumi/games/268588-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 248176,
@@ -344,12 +419,17 @@
       "开放世界",
       "PC"
     ],
-    "cover": "/bangumi/games/248176.jpg",
+    "cover": "/bangumi/games/248176-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:06:45+08:00"
+    "updatedAt": "2026-06-26T14:06:45+08:00",
+    "coverSmall": "/bangumi/games/248176-sm.webp",
+    "coverLarge": "/bangumi/games/248176-lg.webp",
+    "coverSrcSet": "/bangumi/games/248176-sm.webp 420w, /bangumi/games/248176-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 85102,
@@ -366,12 +446,17 @@
       "TPS",
       "肝肝肝"
     ],
-    "cover": "/bangumi/games/85102.jpg",
+    "cover": "/bangumi/games/85102-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:06:21+08:00"
+    "updatedAt": "2026-06-26T14:06:21+08:00",
+    "coverSmall": "/bangumi/games/85102-sm.webp",
+    "coverLarge": "/bangumi/games/85102-lg.webp",
+    "coverSrcSet": "/bangumi/games/85102-sm.webp 420w, /bangumi/games/85102-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 22574,
@@ -388,12 +473,17 @@
       "Bethesda",
       "老滚5"
     ],
-    "cover": "/bangumi/games/22574.jpg",
+    "cover": "/bangumi/games/22574-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:05:54+08:00"
+    "updatedAt": "2026-06-26T14:05:54+08:00",
+    "coverSmall": "/bangumi/games/22574-sm.webp",
+    "coverLarge": "/bangumi/games/22574-lg.webp",
+    "coverSrcSet": "/bangumi/games/22574-sm.webp 420w, /bangumi/games/22574-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 66198,
@@ -410,12 +500,17 @@
       "ARPG",
       "我们来盘昆特牌吧"
     ],
-    "cover": "/bangumi/games/66198.jpg",
+    "cover": "/bangumi/games/66198-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:05:31+08:00"
+    "updatedAt": "2026-06-26T14:05:31+08:00",
+    "coverSmall": "/bangumi/games/66198-sm.webp",
+    "coverLarge": "/bangumi/games/66198-lg.webp",
+    "coverSrcSet": "/bangumi/games/66198-sm.webp 420w, /bangumi/games/66198-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 195573,
@@ -432,12 +527,17 @@
       "西部",
       "神作"
     ],
-    "cover": "/bangumi/games/195573.jpg",
+    "cover": "/bangumi/games/195573-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:05:00+08:00"
+    "updatedAt": "2026-06-26T14:05:00+08:00",
+    "coverSmall": "/bangumi/games/195573-sm.webp",
+    "coverLarge": "/bangumi/games/195573-lg.webp",
+    "coverSrcSet": "/bangumi/games/195573-sm.webp 420w, /bangumi/games/195573-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 56705,
@@ -454,12 +554,17 @@
       "沙盒",
       "开放世界"
     ],
-    "cover": "/bangumi/games/56705.jpg",
+    "cover": "/bangumi/games/56705-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:04:35+08:00"
+    "updatedAt": "2026-06-26T14:04:35+08:00",
+    "coverSmall": "/bangumi/games/56705-sm.webp",
+    "coverLarge": "/bangumi/games/56705-lg.webp",
+    "coverSrcSet": "/bangumi/games/56705-sm.webp 420w, /bangumi/games/56705-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 242025,
@@ -476,12 +581,17 @@
       "已购",
       "游戏"
     ],
-    "cover": "/bangumi/games/242025.jpg",
+    "cover": "/bangumi/games/242025-sm.webp",
     "collectionType": "done",
     "myRate": 6,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:04:13+08:00"
+    "updatedAt": "2026-06-26T14:04:13+08:00",
+    "coverSmall": "/bangumi/games/242025-sm.webp",
+    "coverLarge": "/bangumi/games/242025-lg.webp",
+    "coverSrcSet": "/bangumi/games/242025-sm.webp 420w, /bangumi/games/242025-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 161709,
@@ -498,12 +608,17 @@
       "STEAM",
       "2017"
     ],
-    "cover": "/bangumi/games/161709.jpg",
+    "cover": "/bangumi/games/161709-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:04:02+08:00"
+    "updatedAt": "2026-06-26T14:04:02+08:00",
+    "coverSmall": "/bangumi/games/161709-sm.webp",
+    "coverLarge": "/bangumi/games/161709-lg.webp",
+    "coverSrcSet": "/bangumi/games/161709-sm.webp 420w, /bangumi/games/161709-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 539720,
@@ -520,12 +635,17 @@
       "合作",
       "2025"
     ],
-    "cover": "/bangumi/games/539720.jpg",
+    "cover": "/bangumi/games/539720-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:03:38+08:00"
+    "updatedAt": "2026-06-26T14:03:38+08:00",
+    "coverSmall": "/bangumi/games/539720-sm.webp",
+    "coverLarge": "/bangumi/games/539720-lg.webp",
+    "coverSrcSet": "/bangumi/games/539720-sm.webp 420w, /bangumi/games/539720-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 185085,
@@ -542,12 +662,17 @@
       "PC",
       "PS4"
     ],
-    "cover": "/bangumi/games/185085.jpg",
+    "cover": "/bangumi/games/185085-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:03:15+08:00"
+    "updatedAt": "2026-06-26T14:03:15+08:00",
+    "coverSmall": "/bangumi/games/185085-sm.webp",
+    "coverLarge": "/bangumi/games/185085-lg.webp",
+    "coverSrcSet": "/bangumi/games/185085-sm.webp 420w, /bangumi/games/185085-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 41424,
@@ -564,12 +689,17 @@
       "最后生还者",
       "NaughtyDog"
     ],
-    "cover": "/bangumi/games/41424.jpg",
+    "cover": "/bangumi/games/41424-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:02:43+08:00"
+    "updatedAt": "2026-06-26T14:02:43+08:00",
+    "coverSmall": "/bangumi/games/41424-sm.webp",
+    "coverLarge": "/bangumi/games/41424-lg.webp",
+    "coverSrcSet": "/bangumi/games/41424-sm.webp 420w, /bangumi/games/41424-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 349034,
@@ -586,12 +716,17 @@
       "2023",
       "索尼"
     ],
-    "cover": "/bangumi/games/349034.jpg",
+    "cover": "/bangumi/games/349034-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:02:06+08:00"
+    "updatedAt": "2026-06-26T14:02:06+08:00",
+    "coverSmall": "/bangumi/games/349034-sm.webp",
+    "coverLarge": "/bangumi/games/349034-lg.webp",
+    "coverSrcSet": "/bangumi/games/349034-sm.webp 420w, /bangumi/games/349034-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 498449,
@@ -608,12 +743,17 @@
       "PC",
       "法国"
     ],
-    "cover": "/bangumi/games/498449.jpg",
+    "cover": "/bangumi/games/498449-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:01:39+08:00"
+    "updatedAt": "2026-06-26T14:01:39+08:00",
+    "coverSmall": "/bangumi/games/498449-sm.webp",
+    "coverLarge": "/bangumi/games/498449-lg.webp",
+    "coverSrcSet": "/bangumi/games/498449-sm.webp 420w, /bangumi/games/498449-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 313495,
@@ -630,12 +770,17 @@
       "PC",
       "西游"
     ],
-    "cover": "/bangumi/games/313495.jpg",
+    "cover": "/bangumi/games/313495-sm.webp",
     "collectionType": "done",
     "myRate": 7,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:01:09+08:00"
+    "updatedAt": "2026-06-26T14:01:09+08:00",
+    "coverSmall": "/bangumi/games/313495-sm.webp",
+    "coverLarge": "/bangumi/games/313495-lg.webp",
+    "coverSrcSet": "/bangumi/games/313495-sm.webp 420w, /bangumi/games/313495-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 65759,
@@ -652,12 +797,17 @@
       "賽博朋克",
       "开放世界"
     ],
-    "cover": "/bangumi/games/65759.jpg",
+    "cover": "/bangumi/games/65759-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:00:45+08:00"
+    "updatedAt": "2026-06-26T14:00:45+08:00",
+    "coverSmall": "/bangumi/games/65759-sm.webp",
+    "coverLarge": "/bangumi/games/65759-lg.webp",
+    "coverSrcSet": "/bangumi/games/65759-sm.webp 420w, /bangumi/games/65759-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 315128,
@@ -674,12 +824,17 @@
       "ACT",
       "SantaMonica"
     ],
-    "cover": "/bangumi/games/315128.jpg",
+    "cover": "/bangumi/games/315128-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T14:00:23+08:00"
+    "updatedAt": "2026-06-26T14:00:23+08:00",
+    "coverSmall": "/bangumi/games/315128-sm.webp",
+    "coverLarge": "/bangumi/games/315128-lg.webp",
+    "coverSrcSet": "/bangumi/games/315128-sm.webp 420w, /bangumi/games/315128-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 284100,
@@ -696,12 +851,17 @@
       "开放世界",
       "ARPG"
     ],
-    "cover": "/bangumi/games/284100.jpg",
+    "cover": "/bangumi/games/284100-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T13:59:47+08:00"
+    "updatedAt": "2026-06-26T13:59:47+08:00",
+    "coverSmall": "/bangumi/games/284100-sm.webp",
+    "coverLarge": "/bangumi/games/284100-lg.webp",
+    "coverSrcSet": "/bangumi/games/284100-sm.webp 420w, /bangumi/games/284100-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 308561,
@@ -718,12 +878,17 @@
       "GT",
       "跑车浪漫旅"
     ],
-    "cover": "/bangumi/games/308561.jpg",
+    "cover": "/bangumi/games/308561-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T13:59:11+08:00"
+    "updatedAt": "2026-06-26T13:59:11+08:00",
+    "coverSmall": "/bangumi/games/308561-sm.webp",
+    "coverLarge": "/bangumi/games/308561-lg.webp",
+    "coverSrcSet": "/bangumi/games/308561-sm.webp 420w, /bangumi/games/308561-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 278949,
@@ -740,12 +905,17 @@
       "RPG",
       "PC"
     ],
-    "cover": "/bangumi/games/278949.jpg",
+    "cover": "/bangumi/games/278949-sm.webp",
     "collectionType": "done",
     "myRate": 8,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T13:58:22+08:00"
+    "updatedAt": "2026-06-26T13:58:22+08:00",
+    "coverSmall": "/bangumi/games/278949-sm.webp",
+    "coverLarge": "/bangumi/games/278949-lg.webp",
+    "coverSrcSet": "/bangumi/games/278949-sm.webp 420w, /bangumi/games/278949-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 410282,
@@ -762,12 +932,17 @@
       "2025",
       "死亡搁浅"
     ],
-    "cover": "/bangumi/games/410282.jpg",
+    "cover": "/bangumi/games/410282-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T13:57:50+08:00"
+    "updatedAt": "2026-06-26T13:57:50+08:00",
+    "coverSmall": "/bangumi/games/410282-sm.webp",
+    "coverLarge": "/bangumi/games/410282-lg.webp",
+    "coverSrcSet": "/bangumi/games/410282-sm.webp 420w, /bangumi/games/410282-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 185181,
@@ -784,12 +959,17 @@
       "快递",
       "2019"
     ],
-    "cover": "/bangumi/games/185181.jpg",
+    "cover": "/bangumi/games/185181-sm.webp",
     "collectionType": "done",
     "myRate": 9,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2026-06-26T13:57:31+08:00"
+    "updatedAt": "2026-06-26T13:57:31+08:00",
+    "coverSmall": "/bangumi/games/185181-sm.webp",
+    "coverLarge": "/bangumi/games/185181-lg.webp",
+    "coverSrcSet": "/bangumi/games/185181-sm.webp 420w, /bangumi/games/185181-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   },
   {
     "bangumiId": 5418,
@@ -806,11 +986,16 @@
       "魔法使いの夜",
       "Type-Moon"
     ],
-    "cover": "/bangumi/games/5418.jpg",
+    "cover": "/bangumi/games/5418-sm.webp",
     "collectionType": "doing",
     "myRate": 0,
     "epStatus": 0,
     "volStatus": 0,
-    "updatedAt": "2025-02-03T12:27:46+08:00"
+    "updatedAt": "2025-02-03T12:27:46+08:00",
+    "coverSmall": "/bangumi/games/5418-sm.webp",
+    "coverLarge": "/bangumi/games/5418-lg.webp",
+    "coverSrcSet": "/bangumi/games/5418-sm.webp 420w, /bangumi/games/5418-lg.webp 840w",
+    "coverWidth": 420,
+    "coverHeight": 263
   }
 ]

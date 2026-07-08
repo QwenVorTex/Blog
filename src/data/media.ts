@@ -9,6 +9,11 @@ export interface BangumiEntry {
   rank: number;
   tags: string[];
   cover: string;
+  coverSmall?: string;
+  coverLarge?: string;
+  coverSrcSet?: string;
+  coverWidth?: number;
+  coverHeight?: number;
   collectionType: 'wish' | 'done' | 'doing' | 'on_hold' | 'dropped';
   myRate: number;
   epStatus: number;

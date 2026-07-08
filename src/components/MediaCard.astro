@@ -5,15 +5,29 @@ interface Props {
   item: MediaInfo;
   index: number;
   coverAspect: 'poster' | 'wide';
+  loading?: 'eager' | 'lazy';
+  fetchPriority?: 'high' | 'auto' | 'low';
+  sizes?: string;
 }
 
-const { item, index, coverAspect } = Astro.props;
+const {
+  item,
+  index,
+  coverAspect,
+  loading = 'lazy',
+  fetchPriority = 'auto',
+  sizes = coverAspect === 'poster'
+    ? '(max-width: 640px) 50vw, (max-width: 1200px) 25vw, 220px'
+    : '(max-width: 640px) 90vw, (max-width: 1200px) 33vw, 280px',
+} = Astro.props;
 const displayTitle = item.nameCn || item.name;
 const originalTitle = item.nameCn && item.name !== item.nameCn ? item.name : '';
 const scoreText = item.myRate > 0 ? String(item.myRate) : item.score > 0 ? item.score.toFixed(1) : 'NA';
 const scoreLabel = item.myRate > 0 ? '我的评分' : item.score > 0 ? 'Bangumi 评分' : '暂无评分';
 const searchText = [item.name, item.nameCn, item.year, item.collectionType, ...item.tags].filter(Boolean).join(' ');
 const rotation = [-0.4, 0.3, -0.7, 0.5, -0.2, 0.1][index % 6];
+const imageSrc = item.coverSmall || item.cover;
+const srcSet = item.coverSrcSet || undefined;
 ---
 
 <a
@@ -30,11 +44,16 @@ const rotation = [-0.4, 0.3, -0.7, 0.5, -0.2, 0.1][index % 6];
 >
   <div class="media-card__index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
   <div class="media-card__cover">
-    {item.cover ? (
+    {imageSrc ? (
       <img
-        src={item.cover}
+        src={imageSrc}
+        srcset={srcSet}
+        sizes={srcSet ? sizes : undefined}
+        width={item.coverWidth}
+        height={item.coverHeight}
         alt={`${displayTitle} 封面`}
-        loading="lazy"
+        loading={loading}
+        fetchpriority={fetchPriority}
         decoding="async"
         class="media-card__img"
       />
@@ -61,7 +80,7 @@ const rotation = [-0.4, 0.3, -0.7, 0.5, -0.2, 0.1][index % 6];
   </div>
 </a>
 
-<style>
+<style is:global>
   .media-card {
     --status-color: var(--color-border);
     display: block;
