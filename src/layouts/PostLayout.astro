@@ -14,6 +14,7 @@ interface Props {
   ogImage?: string;
   keywords?: string[];
   canonical?: string;
+  hasToc?: boolean;
 }
 
 const {
@@ -27,6 +28,7 @@ const {
   ogImage,
   keywords = [],
   canonical,
+  hasToc = false,
 } = Astro.props;
 
 const colorMap = {
@@ -106,9 +108,19 @@ const articleStructuredData = {
       </div>
     </header>
 
-    <div class="post__body container container--narrow" data-cursor-zone="reading">
-      <div class="post__content scroll-reveal">
-        <slot />
+    <div
+      class:list={['post__body', 'container', { 'container--narrow': !hasToc, 'post__body--with-toc': hasToc }]}
+      data-cursor-zone="reading"
+    >
+      <div class="post__body-grid">
+        <div class="post__content scroll-reveal">
+          <slot />
+        </div>
+        {hasToc && (
+          <aside class="post__toc" aria-label="文章目录">
+            <slot name="toc" />
+          </aside>
+        )}
       </div>
       <slot name="afterContent" />
     </div>
@@ -162,9 +174,25 @@ const articleStructuredData = {
     padding-bottom: var(--space-16);
   }
 
+  .post__body--with-toc {
+    max-width: var(--max-width);
+  }
+
+  .post__body-grid {
+    display: grid;
+    grid-template-columns: minmax(0, var(--content-width)) 260px;
+    gap: var(--space-10);
+    align-items: start;
+  }
+
+  .container--narrow .post__body-grid {
+    display: block;
+  }
+
   .post__content {
     font-size: var(--text-base);
     line-height: 1.78;
+    min-width: 0;
   }
 
   .post__content :global(p) {
@@ -183,6 +211,68 @@ const articleStructuredData = {
 
   .post__content :global(pre) {
     margin: var(--space-8) 0;
+    position: relative;
+  }
+
+  .post__copy-button {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-thin);
+    background: var(--color-accent);
+    color: var(--color-border);
+    box-shadow: 3px 3px 0 0 var(--color-border);
+  }
+
+  .post__copy-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .post__toc {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-6));
+    padding: var(--space-4);
+    border: var(--border-thick);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+  }
+
+  .post__toc :global(.post-toc__title) {
+    display: block;
+    margin-bottom: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 900;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .post__toc :global(ol) {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .post__toc :global(a) {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .post__toc :global(a:hover) {
+    color: var(--color-action);
+    text-decoration: underline;
+  }
+
+  .post__toc :global(.post-toc__item--3) {
+    padding-left: var(--space-4);
   }
 
   .post__content :global(figcaption) {
@@ -269,11 +359,56 @@ const articleStructuredData = {
       padding-top: var(--space-8);
     }
 
+    .post__body-grid {
+      display: block;
+    }
+
+    .post__toc {
+      display: none;
+    }
+
     .post__content {
       line-height: 1.7;
     }
   }
 </style>
+
+<script>
+  function initPostCodeCopy() {
+    document.querySelectorAll<HTMLElement>('.post__content pre').forEach((pre) => {
+      if (pre.dataset.copyReady === 'true') return;
+      const code = pre.querySelector('code');
+      if (!code?.textContent) return;
+      pre.dataset.copyReady = 'true';
+
+      const button = document.createElement('button');
+      button.className = 'post__copy-button';
+      button.type = 'button';
+      button.textContent = '复制';
+      button.setAttribute('aria-label', '复制代码');
+
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code.textContent || '');
+          button.textContent = '已复制';
+          window.setTimeout(() => {
+            button.textContent = '复制';
+          }, 1400);
+        } catch {
+          button.textContent = '复制失败';
+          window.setTimeout(() => {
+            button.textContent = '复制';
+          }, 1400);
+        }
+      });
+
+      pre.appendChild(button);
+    });
+  }
+
+  initPostCodeCopy();
+  document.addEventListener('astro:page-load', initPostCodeCopy);
+</script>
 
 
 

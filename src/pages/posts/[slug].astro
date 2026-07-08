@@ -14,9 +14,14 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const allPosts = getPublishedPosts(await getCollection('posts'));
-const { Content } = await render(post);
-const readingMinutes = estimateReadingMinutes(post.body);
+const { Content, headings } = await render(post);
+const readingMinutes = estimateReadingMinutes(post.body ?? '');
 const relatedPosts = getRelatedPosts(post, allPosts, 3);
+const tocHeadings = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+const currentIndex = allPosts.findIndex((entry) => entry.id === post.id);
+const newerPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+const olderPost = currentIndex >= 0 ? allPosts[currentIndex + 1] : null;
+const articleOgImage = post.data.ogImage ?? `/og/${post.id}.svg`;
 ---
 
 <PostLayout
@@ -27,32 +32,67 @@ const relatedPosts = getRelatedPosts(post, allPosts, 3);
   heroColor={post.data.heroColor}
   tags={post.data.tags}
   readingMinutes={readingMinutes}
-  ogImage={post.data.ogImage}
+  ogImage={articleOgImage}
   keywords={post.data.keywords}
   canonical={post.data.canonical}
+  hasToc={tocHeadings.length > 0}
 >
   <Content />
 
-  {relatedPosts.length > 0 && (
-    <section slot="afterContent" class="post-related">
-      <div class="post-related__header">
-        <h2>继续阅读</h2>
-        <p>从相近主题开始继续浏览。</p>
-      </div>
-
-      <div class="grid grid--brutalist">
-        {relatedPosts.map((entry, index) => (
-          <PostCard
-            title={entry.data.title}
-            description={entry.data.description}
-            href={`/posts/${entry.id}`}
-            pubDate={entry.data.pubDate}
-            heroColor={entry.data.heroColor}
-            tags={entry.data.tags}
-            index={index}
-          />
+  {tocHeadings.length > 0 && (
+    <nav slot="toc" class="post-toc">
+      <span class="post-toc__title">Contents</span>
+      <ol>
+        {tocHeadings.map((heading) => (
+          <li class={`post-toc__item post-toc__item--${heading.depth}`}>
+            <a href={`#${heading.slug}`}>{heading.text}</a>
+          </li>
         ))}
-      </div>
+      </ol>
+    </nav>
+  )}
+
+  {(newerPost || olderPost || relatedPosts.length > 0) && (
+    <section slot="afterContent" class="post-related">
+      {(newerPost || olderPost) && (
+        <nav class="post-pager" aria-label="文章前后导航">
+          {newerPost ? (
+            <a class="post-pager__link" href={`/posts/${newerPost.id}`}>
+              <span>上一篇</span>
+              <strong>{newerPost.data.title}</strong>
+            </a>
+          ) : <span class="post-pager__link post-pager__link--empty">已经是最新一篇</span>}
+          {olderPost ? (
+            <a class="post-pager__link" href={`/posts/${olderPost.id}`}>
+              <span>下一篇</span>
+              <strong>{olderPost.data.title}</strong>
+            </a>
+          ) : <span class="post-pager__link post-pager__link--empty">已经到底了</span>}
+        </nav>
+      )}
+
+      {relatedPosts.length > 0 && (
+        <>
+          <div class="post-related__header">
+            <h2>继续阅读</h2>
+            <p>从相近主题开始继续浏览。</p>
+          </div>
+
+          <div class="grid grid--brutalist">
+            {relatedPosts.map((entry, index) => (
+              <PostCard
+                title={entry.data.title}
+                description={entry.data.description}
+                href={`/posts/${entry.id}`}
+                pubDate={entry.data.pubDate}
+                heroColor={entry.data.heroColor}
+                tags={entry.data.tags}
+                index={index}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   )}
 </PostLayout>
@@ -64,8 +104,62 @@ const relatedPosts = getRelatedPosts(post, allPosts, 3);
     border-top: var(--border-thick);
   }
 
+  .post-pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-10);
+  }
+
+  .post-pager__link {
+    display: grid;
+    gap: var(--space-2);
+    min-height: 110px;
+    padding: var(--space-4);
+    border: var(--border-thick);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    box-shadow: var(--shadow-md);
+    transition:
+      transform var(--dur-fast) var(--steps-small),
+      box-shadow var(--dur-fast) var(--steps-small);
+  }
+
+  .post-pager__link:hover {
+    color: var(--color-text);
+    text-decoration: none;
+    transform: translate(-4px, -4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .post-pager__link span {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .post-pager__link strong {
+    font-family: var(--font-display);
+    line-height: var(--leading-snug);
+  }
+
+  .post-pager__link--empty {
+    color: var(--color-text-muted);
+    box-shadow: none;
+  }
+
   .post-related__header p {
     color: var(--color-text-muted);
     margin-bottom: var(--space-8);
+  }
+
+  @media (max-width: 720px) {
+    .post-pager {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
