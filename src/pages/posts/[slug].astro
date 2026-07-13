@@ -53,7 +53,7 @@ const articleOgImage = post.data.ogImage ?? `/og/${post.id}.svg`;
   )}
 
   {(newerPost || olderPost || relatedPosts.length > 0) && (
-    <section slot="afterContent" class="post-related">
+    <section slot="afterContent" class="post-related" data-pagefind-ignore>
       {(newerPost || olderPost) && (
         <nav class="post-pager" aria-label="文章前后导航">
           {newerPost ? (

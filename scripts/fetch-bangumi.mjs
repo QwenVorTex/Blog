@@ -110,30 +110,29 @@ function getCoverVariantPaths(type, subjectId) {
   };
 }
 
-async function optimizeCover(sourcePath, type, subjectId) {
+async function optimizeCover(sourcePath, type, subjectId, { force = false } = {}) {
   const variants = COVER_VARIANTS[type];
   const output = getCoverVariantPaths(type, subjectId);
   mkdirSync(dirname(output.small), { recursive: true });
 
-  await sharp(sourcePath)
-    .rotate()
-    .resize(variants.small.width, variants.small.height, {
-      fit: 'cover',
-      position: 'centre',
-      withoutEnlargement: true,
-    })
-    .webp({ quality: 78, effort: 4 })
-    .toFile(output.small);
+  const writeVariant = async (path, size, quality) => {
+    if (!force && existsSync(path)) return;
 
-  await sharp(sourcePath)
-    .rotate()
-    .resize(variants.large.width, variants.large.height, {
-      fit: 'cover',
-      position: 'centre',
-      withoutEnlargement: true,
-    })
-    .webp({ quality: 80, effort: 4 })
-    .toFile(output.large);
+    await sharp(sourcePath)
+      .rotate()
+      .resize(size.width, size.height, {
+        fit: 'cover',
+        position: 'centre',
+        withoutEnlargement: true,
+      })
+      .webp({ quality, effort: 4 })
+      .toFile(path);
+  };
+
+  await Promise.all([
+    writeVariant(output.small, variants.small, 78),
+    writeVariant(output.large, variants.large, 80),
+  ]);
 
   const coverSmall = toPublicPath(output.small);
   const coverLarge = toPublicPath(output.large);
@@ -201,7 +200,9 @@ async function processCollections(items, type) {
         ? originalPath
         : resolve(cacheDir, `${subjectId}${extname(originalPath)}`);
       if (existsSync(sourcePath)) {
-        coverInfo = await optimizeCover(sourcePath, type, subjectId);
+        coverInfo = await optimizeCover(sourcePath, type, subjectId, {
+          force: downloaded || REFRESH_COVERS,
+        });
       }
     }
 

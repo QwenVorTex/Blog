@@ -69,7 +69,7 @@ const mediaDataSrc = `/media/${pageKey}.json`;
         </div>
 
         {latestItems.length > 0 && (
-          <aside class="media-page__recent anim-enter anim-delay-3" aria-label="最近更新">
+          <aside class="media-page__recent anim-enter anim-delay-3" aria-label="最近更新" data-pagefind-ignore>
             <span class="badge">最近更新</span>
             <ol>
               {latestItems.map((item) => (
@@ -82,7 +82,7 @@ const mediaDataSrc = `/media/${pageKey}.json`;
           </aside>
         )}
 
-        <div class="media-page__ledger anim-enter anim-delay-3" aria-label={`${title}统计`}>
+        <div class="media-page__ledger anim-enter anim-delay-3" aria-label={`${title}统计`} data-pagefind-ignore>
           <div class="media-page__stat media-page__stat--total">
             <span>总数</span>
             <strong>{totalCount}</strong>
@@ -119,7 +119,7 @@ const mediaDataSrc = `/media/${pageKey}.json`;
         filters={filters}
       />
 
-      <div class="media-grid" id={gridId}>
+      <div class="media-grid" id={gridId} data-pagefind-ignore>
         {initialItems.map((item, index) => (
           <MediaCard
             item={item}
@@ -131,15 +131,15 @@ const mediaDataSrc = `/media/${pageKey}.json`;
         ))}
       </div>
 
-      <div class="media-page__sentinel" data-media-sentinel hidden>
+      <div class="media-page__sentinel" data-media-sentinel data-pagefind-ignore hidden>
         <span class="media-page__sentinel-label" data-media-sentinel-label>下一批</span>
       </div>
       <p class="sr-only" data-media-live aria-live="polite"></p>
-      <button class="media-page__more" type="button" data-media-load-more hidden>
+      <button class="media-page__more" type="button" data-media-load-more data-pagefind-ignore hidden>
         继续加载
       </button>
 
-      <div class="media-page__empty card card--flat" id={emptyId} hidden>
+      <div class="media-page__empty card card--flat" id={emptyId} data-pagefind-ignore hidden>
         <p class="media-page__empty-title">NO MATCH</p>
         <p>{emptyText}</p>
       </div>
@@ -422,6 +422,8 @@ const mediaDataSrc = `/media/${pageKey}.json`;
 </style>
 
 <script>
+  import type { SortState } from '@/lib/sort';
+
   interface ClientMediaItem {
     bangumiId: number;
     name: string;
@@ -443,13 +445,6 @@ const mediaDataSrc = `/media/${pageKey}.json`;
     statusTone?: string;
     displayScore?: string;
     searchText: string;
-  }
-
-  interface SortState {
-    mode: string;
-    ascending: boolean;
-    searchQuery: string;
-    activeFilter: string;
   }
 
   const mediaRotations = [-0.4, 0.3, -0.7, 0.5, -0.2, 0.1];
@@ -530,11 +525,6 @@ const mediaDataSrc = `/media/${pageKey}.json`;
     return anchor;
   }
 
-  function getEffectiveOrder(state: SortState) {
-    const defaultAsc = state.mode === 'alpha';
-    return state.ascending ? !defaultAsc : defaultAsc;
-  }
-
   function filterAndSort(items: ClientMediaItem[], state: SortState) {
     const query = state.searchQuery.toLowerCase();
     const filtered = items.filter((item) => {
@@ -542,7 +532,9 @@ const mediaDataSrc = `/media/${pageKey}.json`;
       const statusMatch = !state.activeFilter || item.collectionType === state.activeFilter;
       return nameMatch && statusMatch;
     });
-    const isAsc = getEffectiveOrder(state);
+    if (state.mode === 'default') {
+      return state.ascending ? filtered.reverse() : filtered;
+    }
 
     return filtered.sort((a, b) => {
       let cmp = 0;
@@ -552,10 +544,8 @@ const mediaDataSrc = `/media/${pageKey}.json`;
         cmp = (a.date || '0').localeCompare(b.date || '0');
       } else if (state.mode === 'score') {
         cmp = (a.myRate || a.score || 0) - (b.myRate || b.score || 0);
-      } else {
-        cmp = 0;
       }
-      return isAsc ? cmp : -cmp;
+      return state.ascending ? cmp : -cmp;
     });
   }
 

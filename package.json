@@ -5,7 +5,9 @@
   "description": "A Neo-Brutalist personal blog built with Astro",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "npm run build:site && npm run build:search",
+    "build:site": "astro build",
+    "build:search": "pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
@@ -21,6 +23,10 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@astrojs/sitemap": "^3.7.3",
+    "@fontsource/archivo-black": "^5.2.8",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "pagefind": "^1.5.2",
     "typescript": "^6.0.3"
   }
 }

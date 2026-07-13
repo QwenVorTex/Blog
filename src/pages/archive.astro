@@ -25,40 +25,28 @@ const allTags = getTagStats(allPosts);
         </p>
       </header>
 
-      {allTags.length > 0 && (
-        <div class="archive__filters card card--flat scroll-reveal">
-          <div class="archive__filters-head">
-            <span class="text-label">主题筛选</span>
-            <button class="archive__filter archive__filter--clear is-active" type="button" data-tag-filter="">
-              全部
-            </button>
-          </div>
-          <div class="archive__tags">
-            {allTags.map((item, index) => (
-              <button
-                class:list={['archive__filter', `archive__filter--${index % 3 === 0 ? 'accent' : index % 3 === 1 ? 'link' : 'action'}`]}
-                type="button"
-                data-tag-filter={item.tag}
-              >
-                {item.tag} · {item.count}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <SortControls
+        target="#posts-grid"
+        emptyTarget="#archive-filter-empty"
+        filters={allTags.map((item) => ({ value: item.tag, label: `${item.tag} · ${item.count}` }))}
+        filterMode="token"
+        filterParam="tag"
+        searchPlaceholder="搜索标题、描述或标签…"
+        urlSync
+        options={[
+          { value: 'default', label: '最新' },
+          { value: 'alpha',   label: '首字母' },
+          { value: 'date',    label: '日期' },
+        ]}
+      />
 
-      <SortControls target="#posts-grid" options={[
-        { value: 'default', label: '最新' },
-        { value: 'alpha',   label: '首字母' },
-        { value: 'date',    label: '最早' },
-      ]} />
-
-      <div class="grid grid--brutalist" id="posts-grid">
+      <div class="grid grid--brutalist" id="posts-grid" data-pagefind-ignore>
         {allPosts.map((post, i) => (
           <div
             data-sort-name={post.data.title}
             data-sort-date={post.data.pubDate.toISOString().slice(0, 10)}
-            data-tags={post.data.tags.join('|')}
+            data-sort-status={post.data.tags.join('|')}
+            data-sort-search={[post.data.title, post.data.description, ...post.data.tags].join(' ')}
           >
             <PostCard
               title={post.data.title}
@@ -71,6 +59,11 @@ const allTags = getTagStats(allPosts);
             />
           </div>
         ))}
+      </div>
+
+      <div class="card card--flat archive__empty" id="archive-filter-empty" hidden>
+        <p class="text-display archive__empty-title">NO MATCH</p>
+        <p>没有找到匹配的文章，清除条件后再试。</p>
       </div>
 
       {allPosts.length === 0 && (
@@ -110,45 +103,6 @@ const allTags = getTagStats(allPosts);
     color: var(--color-text-muted);
   }
 
-  .archive__filters {
-    margin-bottom: var(--space-8);
-  }
-
-  .archive__filters-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-  }
-
-  .archive__tags {
-    display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-
-  .archive__filter {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    padding: var(--space-1) var(--space-3);
-    border: var(--border-medium);
-    background: var(--color-surface);
-    transition: transform var(--dur-instant) var(--steps-micro),
-                box-shadow var(--dur-instant) var(--steps-micro);
-  }
-
-  .archive__filter:hover,
-  .archive__filter.is-active {
-    transform: translate(-2px, -2px);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .archive__filter--accent { background: var(--color-accent); }
-  .archive__filter--link { background: var(--color-link); color: var(--color-surface); }
-  .archive__filter--action { background: var(--color-action); color: var(--color-surface); }
-
   .archive__empty {
     text-align: center;
     padding: var(--space-16);
@@ -158,52 +112,4 @@ const allTags = getTagStats(allPosts);
     font-size: var(--text-2xl);
   }
 
-  @media (max-width: 768px) {
-    .archive__filters-head {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
 </style>
-
-<script>
-  function initArchiveFilters() {
-    const archive = document.querySelector('.archive');
-    if (!(archive instanceof HTMLElement) || archive.dataset.filtersReady === 'true') return;
-    archive.dataset.filtersReady = 'true';
-
-    const buttons = Array.from(document.querySelectorAll('[data-tag-filter]'));
-    const cards = Array.from(document.querySelectorAll('#posts-grid > div'));
-    const params = new URLSearchParams(window.location.search);
-
-    const applyFilter = (tag: string) => {
-      buttons.forEach((button) => {
-        button.classList.toggle('is-active', button.getAttribute('data-tag-filter') === tag);
-      });
-
-      cards.forEach((card) => {
-        const tags = card.getAttribute('data-tags') || '';
-        card.toggleAttribute('hidden', Boolean(tag) && !tags.split('|').includes(tag));
-      });
-
-      const url = new URL(window.location.href);
-      if (tag) {
-        url.searchParams.set('tag', tag);
-      } else {
-        url.searchParams.delete('tag');
-      }
-      window.history.replaceState({}, '', url);
-    };
-
-    buttons.forEach((button) => {
-      button.addEventListener('click', () => {
-        applyFilter(button.getAttribute('data-tag-filter') || '');
-      });
-    });
-
-    applyFilter(params.get('tag') || '');
-  }
-
-  initArchiveFilters();
-  document.addEventListener('astro:page-load', initArchiveFilters);
-</script>

@@ -10,15 +10,12 @@ const socialLinks = [
 ---
 
 <footer class="site-footer">
-  <!-- Marquee -->
+  <!-- Static archive ticker -->
   <div class="marquee-track">
-    <div class="marquee-content">
+    <div class="marquee-content site-footer__ticker">
       <span>NEO-BRUTALIST BLOG ✦</span>
       <span>反设计 ◆ ANTI-DESIGN ■</span>
       <span>粗野主义 ▲ BRUTALISM ✦</span>
-      <span>NEO-BRUTALIST BLOG ◆</span>
-      <span>反设计 ■ ANTI-DESIGN ▲</span>
-      <span>粗野主义 ✦ BRUTALISM ◆</span>
     </div>
   </div>
 
@@ -67,6 +64,13 @@ const socialLinks = [
     border-top: var(--border-thick);
     background: var(--color-base);
     margin-top: var(--space-16);
+  }
+
+  .site-footer__ticker {
+    justify-content: space-around;
+    flex-wrap: wrap;
+    white-space: normal;
+    animation: none;
   }
 
   .site-footer__inner {

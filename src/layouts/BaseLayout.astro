@@ -17,6 +17,7 @@ interface Props {
   noindex?: boolean;
   canonical?: string;
   structuredData?: Record<string, unknown> | null;
+  searchable?: boolean;
 }
 
 const {
@@ -30,6 +31,7 @@ const {
   noindex = false,
   canonical,
   structuredData = null,
+  searchable = true,
 } = Astro.props;
 
 const siteURL = Astro.site ?? new URL(siteConfig.url);
@@ -39,6 +41,7 @@ const pageTitle =
   title === siteConfig.title || title.includes(siteConfig.shortName) || title.includes(siteConfig.name)
     ? title
     : `${title} · ${siteConfig.shortName}`;
+const searchKind = pageType === 'article' ? '文章' : '页面';
 ---
 
 <!DOCTYPE html>
@@ -50,6 +53,19 @@ const pageTitle =
   <meta name="author" content={siteConfig.author.name} />
   <meta name="theme-color" content="#FFCB2F" />
   <meta name="generator" content={Astro.generator} />
+  {searchable && <meta data-pagefind-meta="title[content]" content={pageTitle} />}
+  {searchable && <meta data-pagefind-meta="description[content]" content={description} />}
+  {searchable && (
+    <meta
+      data-pagefind-meta="kind[content]"
+      data-pagefind-filter="kind[content]"
+      content={searchKind}
+    />
+  )}
+  {searchable && publishedTime && <meta data-pagefind-meta="date[content]" content={publishedTime} />}
+  {searchable && keywords.length > 0 && (
+    <meta data-pagefind-meta="tags[content]" content={keywords.join(', ')} />
+  )}
   {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
   {noindex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -86,7 +102,11 @@ const pageTitle =
   <div id="scroll-container">
     <Header />
 
-    <main id="main-content" class="anim-page-enter">
+    <main
+      id="main-content"
+      class="anim-page-enter"
+      data-pagefind-body={searchable ? true : undefined}
+    >
       <slot />
     </main>
 

@@ -77,8 +77,14 @@
   --shadow-action:  6px 6px 0px 0px var(--color-action);
   --shadow-link:    6px 6px 0px 0px var(--color-link);
 
+  /* ── Interaction States ── */
+  --focus-ring:       4px solid var(--color-link);
+  --focus-offset:     4px;
+  --control-height:   44px;
+  --shadow-pressed:   2px 2px 0px 0px var(--color-border);
+
   /* ── Layout ── */
-  --max-width:        1200px;
+  --max-width:        1280px;
   --content-width:    720px;
   --sidebar-width:    300px;
   --header-height:    72px;

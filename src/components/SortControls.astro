@@ -9,13 +9,24 @@ interface Props {
   options?: Array<{ value: string; label: string }>;
   filters?: Array<{ value: string; label: string }>;
   external?: boolean;
+  urlSync?: boolean;
+  filterMode?: 'exact' | 'token';
+  filterParam?: string;
+  searchPlaceholder?: string;
 }
 
 const { target, emptyTarget, options = [
   { value: 'default', label: '默认' },
   { value: 'alpha',   label: '首字母' },
   { value: 'date',    label: '时间' },
-], filters = [], external = false } = Astro.props;
+],
+  filters = [],
+  external = false,
+  urlSync = false,
+  filterMode = 'exact',
+  filterParam = 'filter',
+  searchPlaceholder = '搜索标题、年份、标签…',
+} = Astro.props;
 ---
 
 <div
@@ -23,6 +34,10 @@ const { target, emptyTarget, options = [
   data-sort-target={target}
   data-sort-empty-target={emptyTarget}
   data-sort-external={external ? 'true' : undefined}
+  data-sort-url-sync={urlSync ? 'true' : undefined}
+  data-sort-filter-mode={filterMode}
+  data-sort-filter-param={filterParam}
+  data-pagefind-ignore
 >
   {filters.length > 0 && (
     <div class="sort-controls__row sort-controls__row--filters">
@@ -77,10 +92,13 @@ const { target, emptyTarget, options = [
     <input
       class="sort-controls__search"
       type="search"
-      placeholder="搜索标题、年份、标签…"
+      placeholder={searchPlaceholder}
       data-sort-search
       aria-label="搜索条目"
     />
+    <button class="sort-controls__clear" type="button" data-sort-clear hidden>
+      清除条件
+    </button>
     <span class="sort-controls__count" data-sort-count aria-live="polite"></span>
   </div>
 </div>
@@ -119,6 +137,7 @@ const { target, emptyTarget, options = [
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     padding: var(--space-2) var(--space-4);
+    min-height: var(--control-height);
     background: var(--color-surface);
     color: var(--color-text);
     border: var(--border-thick);
@@ -178,6 +197,7 @@ const { target, emptyTarget, options = [
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: var(--space-2) var(--space-3);
+    min-height: var(--control-height);
     background: var(--color-surface);
     border: var(--border-thick);
     color: var(--color-text);
@@ -201,6 +221,27 @@ const { target, emptyTarget, options = [
     font-size: var(--text-xs);
     color: var(--color-text-muted);
     white-space: nowrap;
+  }
+
+  .sort-controls__clear {
+    min-height: var(--control-height);
+    padding: var(--space-2) var(--space-4);
+    border: var(--border-thick);
+    background: var(--color-accent);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 800;
+  }
+
+  .sort-controls__clear:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .sort-controls__clear[hidden] {
+    display: none;
   }
 
   @media (max-width: 768px) {
@@ -234,6 +275,8 @@ const { target, emptyTarget, options = [
 </style>
 
 <script>
+  import type { SortState } from '@/lib/sort';
+
   function initSortControls() {
     document.querySelectorAll<HTMLElement>('.sort-controls').forEach((ctrl) => {
       if (ctrl.dataset.sortReady === 'true') return;
@@ -245,6 +288,9 @@ const { target, emptyTarget, options = [
       if (!container) return;
       const sortContainer = container;
       const externalMode = ctrl.dataset.sortExternal === 'true';
+      const urlSync = ctrl.dataset.sortUrlSync === 'true';
+      const filterMode = ctrl.dataset.sortFilterMode || 'exact';
+      const filterParam = ctrl.dataset.sortFilterParam || 'filter';
 
       const emptyEl = ctrl.dataset.sortEmptyTarget
         ? document.querySelector<HTMLElement>(ctrl.dataset.sortEmptyTarget)
@@ -257,27 +303,27 @@ const { target, emptyTarget, options = [
       const orderBtn = ctrl.querySelector<HTMLButtonElement>('.sort-controls__order');
       const searchInput = ctrl.querySelector<HTMLInputElement>('.sort-controls__search');
       const countEl = ctrl.querySelector<HTMLElement>('.sort-controls__count');
+      const clearButton = ctrl.querySelector<HTMLButtonElement>('[data-sort-clear]');
 
-      let currentMode = 'default';
-      let ascending = false;
+      const defaultMode = sortButtons[0]?.dataset.sortValue || 'default';
+      const getDefaultAscending = (mode: string) => mode === 'alpha';
+
+      let currentMode = defaultMode;
+      let ascending = getDefaultAscending(defaultMode);
       let searchQuery = '';
       let activeFilter = '';
 
       function emitState() {
+        const detail: SortState = {
+          mode: currentMode,
+          ascending,
+          searchQuery,
+          activeFilter,
+        };
         ctrl.dispatchEvent(new CustomEvent('sort-controls:change', {
           bubbles: true,
-          detail: {
-            mode: currentMode,
-            ascending,
-            searchQuery,
-            activeFilter,
-          },
+          detail,
         }));
-      }
-
-      function getEffectiveOrder() {
-        const defaultAsc = currentMode === 'alpha';
-        return ascending ? !defaultAsc : defaultAsc;
       }
 
       function updateCount(visible: number, total: number) {
@@ -285,19 +331,79 @@ const { target, emptyTarget, options = [
           countEl.textContent = visible === total ? `${total} 项` : `${visible} / ${total}`;
         }
         if (emptyEl) {
-          emptyEl.hidden = visible !== 0;
+          emptyEl.hidden = total === 0 || visible !== 0;
         }
       }
 
-      function setPressed(buttons: NodeListOf<HTMLButtonElement>, active: HTMLButtonElement) {
-        buttons.forEach((button) => {
-          const isActive = button === active;
+      function updateControls() {
+        sortButtons.forEach((button) => {
+          const isActive = button.dataset.sortValue === currentMode;
           button.classList.toggle('is-active', isActive);
           button.setAttribute('aria-pressed', String(isActive));
         });
+        filterButtons.forEach((button) => {
+          const isActive = (button.dataset.filterValue || '') === activeFilter;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', String(isActive));
+        });
+        if (searchInput) searchInput.value = searchQuery;
+        if (orderBtn) {
+          orderBtn.dataset.sortOrder = ascending ? 'asc' : 'desc';
+          orderBtn.textContent = ascending ? '↑' : '↓';
+          orderBtn.setAttribute('aria-label', `切换排序方向，当前为${ascending ? '升序' : '降序'}`);
+        }
+        if (clearButton) {
+          clearButton.hidden = (
+            currentMode === defaultMode
+            && ascending === getDefaultAscending(defaultMode)
+            && !searchQuery
+            && !activeFilter
+          );
+        }
       }
 
-      function applySortAndFilter() {
+      function syncUrl(mode: 'replace' | 'push') {
+        if (!urlSync) return;
+        const url = new URL(window.location.href);
+
+        if (currentMode === defaultMode) url.searchParams.delete('sort');
+        else url.searchParams.set('sort', currentMode);
+
+        if (ascending === getDefaultAscending(currentMode)) url.searchParams.delete('order');
+        else url.searchParams.set('order', ascending ? 'asc' : 'desc');
+
+        if (searchQuery) url.searchParams.set('q', searchQuery);
+        else url.searchParams.delete('q');
+
+        if (activeFilter) url.searchParams.set(filterParam, activeFilter);
+        else url.searchParams.delete(filterParam);
+
+        if (url.toString() === window.location.href) return;
+        window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url);
+      }
+
+      function readUrlState() {
+        if (!urlSync) return;
+        const params = new URLSearchParams(window.location.search);
+        const requestedMode = params.get('sort') || defaultMode;
+        currentMode = Array.from(sortButtons).some((button) => button.dataset.sortValue === requestedMode)
+          ? requestedMode
+          : defaultMode;
+        const requestedOrder = params.get('order');
+        ascending = requestedOrder
+          ? requestedOrder === 'asc'
+          : getDefaultAscending(currentMode);
+        searchQuery = params.get('q')?.trim() || '';
+        const requestedFilter = params.get(filterParam) || '';
+        activeFilter = Array.from(filterButtons).some(
+          (button) => (button.dataset.filterValue || '') === requestedFilter,
+        ) ? requestedFilter : '';
+      }
+
+      function applySortAndFilter(historyMode?: 'replace' | 'push') {
+        updateControls();
+        if (historyMode) syncUrl(historyMode);
+
         if (externalMode) {
           emitState();
           return;
@@ -310,15 +416,18 @@ const { target, emptyTarget, options = [
           const searchText = (el.dataset.sortSearch || el.dataset.sortName || '').toLowerCase();
           const status = el.dataset.sortStatus || '';
           const nameMatch = !query || searchText.includes(query);
-          const statusMatch = !activeFilter || status === activeFilter;
+          const statusMatch = !activeFilter || (
+            filterMode === 'token'
+              ? status.split('|').includes(activeFilter)
+              : status === activeFilter
+          );
           const visible = nameMatch && statusMatch;
-          el.style.display = visible ? '' : 'none';
+          el.hidden = !visible;
           if (visible) visibleCount++;
         });
 
-        const visibleItems = allItems.filter((el) => el.style.display !== 'none');
-        const hiddenItems = allItems.filter((el) => el.style.display === 'none');
-        const isAsc = getEffectiveOrder();
+        const visibleItems = allItems.filter((el) => !el.hidden);
+        const hiddenItems = allItems.filter((el) => el.hidden);
 
         let sorted: HTMLElement[];
 
@@ -328,28 +437,28 @@ const { target, emptyTarget, options = [
               const cmp = (a.dataset.sortName || '').toLowerCase().localeCompare(
                 (b.dataset.sortName || '').toLowerCase(), 'zh-CN'
               );
-              return isAsc ? cmp : -cmp;
+              return ascending ? cmp : -cmp;
             });
             break;
 
           case 'date':
             sorted = [...visibleItems].sort((a, b) => {
               const cmp = (a.dataset.sortDate || '0').localeCompare(b.dataset.sortDate || '0');
-              return isAsc ? cmp : -cmp;
+              return ascending ? cmp : -cmp;
             });
             break;
 
           case 'score':
             sorted = [...visibleItems].sort((a, b) => {
               const cmp = (Number(a.dataset.sortScore) || 0) - (Number(b.dataset.sortScore) || 0);
-              return isAsc ? cmp : -cmp;
+              return ascending ? cmp : -cmp;
             });
             break;
 
           default:
             sorted = [...visibleItems].sort((a, b) => {
               const cmp = Number(a.dataset.sortOriginal) - Number(b.dataset.sortOriginal);
-              return isAsc ? cmp : -cmp;
+              return ascending ? -cmp : cmp;
             });
             break;
         }
@@ -362,42 +471,51 @@ const { target, emptyTarget, options = [
 
       sortButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          setPressed(sortButtons, btn);
           currentMode = btn.dataset.sortValue || 'default';
-          applySortAndFilter();
+          ascending = getDefaultAscending(currentMode);
+          applySortAndFilter('push');
         });
       });
 
       filterButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          setPressed(filterButtons, btn);
           activeFilter = btn.dataset.filterValue || '';
-          applySortAndFilter();
+          applySortAndFilter('push');
         });
       });
 
       if (orderBtn) {
         orderBtn.addEventListener('click', () => {
           ascending = !ascending;
-          orderBtn.dataset.sortOrder = ascending ? 'asc' : 'desc';
-          orderBtn.textContent = ascending ? '↑' : '↓';
-          orderBtn.setAttribute('aria-label', `切换排序方向，当前为${ascending ? '升序' : '降序'}`);
-          applySortAndFilter();
+          applySortAndFilter('push');
         });
       }
 
       if (searchInput) {
         searchInput.addEventListener('input', () => {
           searchQuery = searchInput.value.trim();
-          applySortAndFilter();
+          applySortAndFilter('replace');
         });
       }
 
-      if (externalMode) {
-        emitState();
-      } else {
-        updateCount(allItems.length, allItems.length);
+      clearButton?.addEventListener('click', () => {
+        currentMode = defaultMode;
+        ascending = getDefaultAscending(defaultMode);
+        searchQuery = '';
+        activeFilter = '';
+        applySortAndFilter('push');
+        searchInput?.focus();
+      });
+
+      if (urlSync) {
+        window.addEventListener('popstate', () => {
+          readUrlState();
+          applySortAndFilter();
+        });
+        readUrlState();
       }
+
+      applySortAndFilter();
     });
   }
 

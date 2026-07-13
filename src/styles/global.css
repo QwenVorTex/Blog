@@ -2,7 +2,13 @@
    GLOBAL RESET & BASE STYLES
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import '@fontsource/archivo-black/400.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
 
 @import './variables.css';
 @import './typography.css';
@@ -20,7 +26,8 @@
 
 html {
   font-size: 16px;
-  scroll-behavior: auto; /* Disable smooth scroll; we control it via JS */
+  scroll-behavior: auto;
+  scroll-padding-top: calc(var(--header-height) + var(--space-6));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,10 +42,9 @@ body {
   min-height: 100vh;
 }
 
-a:focus-visible,
-button:focus-visible {
-  outline: 4px solid var(--color-link);
-  outline-offset: 4px;
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 img, video, svg {
@@ -72,6 +78,7 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  touch-action: manipulation;
 }
 
 .sr-only {

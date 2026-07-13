@@ -33,6 +33,27 @@
     html.has-brutalist-cursor .hero__block {
       cursor: none !important;
     }
+
+    html.has-brutalist-cursor .post__content,
+    html.has-brutalist-cursor .post__content *,
+    html.has-brutalist-cursor .search-panel,
+    html.has-brutalist-cursor .search-panel * {
+      cursor: auto !important;
+    }
+
+    html.has-brutalist-cursor :is(input, textarea, [contenteditable='true']) {
+      cursor: text !important;
+    }
+
+    html.has-brutalist-cursor .post__content a,
+    html.has-brutalist-cursor .search-panel :is(a, button) {
+      cursor: pointer !important;
+    }
+
+    body:has(.search-panel[open]) .brutalist-cursor,
+    body:has(.search-panel[open]) .cursor-hud {
+      opacity: 0 !important;
+    }
   }
 
   body {
@@ -359,8 +380,9 @@
 
     const setVisibility = (nextVisible: boolean) => {
       visible = nextVisible;
-      root.classList.toggle('is-active', visible);
-      const hudVisible = visible && zone !== 'reading';
+      const customVisible = visible && zone !== 'reading' && zone !== 'native';
+      root.classList.toggle('is-active', customVisible);
+      const hudVisible = customVisible;
       hud.classList.toggle('is-active', hudVisible);
     };
 
@@ -368,7 +390,7 @@
       if (!element) return 'default';
       if (
         element.closest(
-          'button, [role="button"], .btn, .sort-controls__btn, .archive__filter'
+          'button, [role="button"], .btn, .sort-controls__btn, .sort-controls__clear'
         )
       ) {
         return 'button';
@@ -388,6 +410,7 @@
 
     const resolveZone = (element: Element | null) => {
       if (!element) return 'default';
+      if (element.closest('[data-search-dialog]')) return 'native';
       if (element.closest('[data-cursor-zone="reading"]')) return 'reading';
       if (element.closest('[data-cursor-zone="hero"]')) return 'hero';
       return 'default';
@@ -400,9 +423,9 @@
       return `[x:${Math.round(targetX)} y:${Math.round(targetY)}]`;
     };
 
-    const render = () => {
-      window.requestAnimationFrame(render);
+    let frameId: number | null = null;
 
+    const render = () => {
       const coreFactor = draggingScrollbar
         ? 0.5
         : pressed
@@ -438,6 +461,24 @@
       root.dataset.zone = zone;
       root.dataset.pressed = String(pressed);
       hud.dataset.mode = mode;
+
+      const unsettled = (
+        Math.abs(coreX - targetX) > 0.1
+        || Math.abs(coreY - targetY) > 0.1
+        || Math.abs(shadowX - targetX) > 0.1
+        || Math.abs(shadowY - targetY) > 0.1
+        || Math.abs(hudX - targetX) > 0.1
+        || Math.abs(hudY - targetY) > 0.1
+      );
+      frameId = unsettled || pressed || draggingScrollbar
+        ? window.requestAnimationFrame(render)
+        : null;
+    };
+
+    const scheduleRender = () => {
+      if (frameId === null) {
+        frameId = window.requestAnimationFrame(render);
+      }
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -455,6 +496,7 @@
         zone = 'default';
         setVisibility(true);
         hud.classList.remove('is-active');
+        scheduleRender();
         return;
       }
 
@@ -465,6 +507,7 @@
       mode = resolveMode(target);
       zone = resolveZone(target);
       setVisibility(true);
+      scheduleRender();
 
       window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => {
@@ -476,6 +519,7 @@
       if (event.pointerType && event.pointerType !== 'mouse') return;
 
       pressed = true;
+      scheduleRender();
 
       if (isVerticalScrollbarEvent(event)) {
         startScrollbarDrag(event);
@@ -485,6 +529,7 @@
     const onPointerUp = () => {
       pressed = false;
       draggingScrollbar = false;
+      scheduleRender();
     };
 
     const onMouseDown = (event: MouseEvent) => {
@@ -496,6 +541,7 @@
     const onScroll = () => {
       if (draggingScrollbar) {
         syncWithVerticalScrollbar();
+        scheduleRender();
       }
     };
 
@@ -517,7 +563,7 @@
     window.addEventListener('blur', hideCursor);
     document.documentElement.addEventListener('mouseleave', hideCursor);
 
-    window.requestAnimationFrame(render);
+    scheduleRender();
   }
 
   initBrutalistCursor();

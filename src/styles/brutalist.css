@@ -8,7 +8,7 @@
   width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-8);
 }
 
 .container--narrow {
@@ -72,6 +72,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
   padding: var(--space-3) var(--space-6);
+  min-height: var(--control-height);
   border: var(--border-thick);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
@@ -93,7 +94,7 @@
 
 .btn:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px var(--color-border);
+  box-shadow: var(--shadow-pressed);
 }
 
 .btn--primary {
@@ -162,7 +163,7 @@
 
 .tag:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px var(--color-border);
+  box-shadow: var(--shadow-pressed);
 }
 
 .tag--accent  { background: var(--color-accent); }
@@ -326,6 +327,12 @@
   .grid--asymmetric,
   .grid--asymmetric-reverse { grid-template-columns: 1fr; }
   .card { padding: var(--space-4); }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    padding-inline: var(--space-12);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,8 @@
  * Optimize existing Bangumi covers for static publishing.
  *
  * Reads src/data/bangumi-*.json, generates WebP card-sized variants into public/bangumi,
- * updates JSON cover fields, and optionally moves original downloaded files out of public.
+ * updates JSON cover fields, and moves original downloaded files out of public by default.
+ * Existing WebP variants are preserved unless --force is supplied.
  */
 
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -12,7 +13,8 @@ import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const MOVE_ORIGINALS = process.argv.includes('--move-originals');
+const MOVE_ORIGINALS = !process.argv.includes('--keep-originals');
+const FORCE = process.argv.includes('--force');
 const TYPES = ['anime', 'games'];
 
 const PUBLIC_DIR = resolve(ROOT, 'public', 'bangumi');
@@ -47,7 +49,9 @@ function getOptimizedPaths(type, bangumiId) {
 function findSourceCover(type, entry) {
   const candidates = [];
   const currentCover = entry.cover?.replace(/^\//, '');
-  if (currentCover) candidates.push(resolve(ROOT, 'public', currentCover));
+  if (currentCover && !/-((sm)|(lg))\.webp$/i.test(currentCover)) {
+    candidates.push(resolve(ROOT, 'public', currentCover));
+  }
 
   for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'gif']) {
     candidates.push(resolve(PUBLIC_DIR, type, `${entry.bangumiId}.${ext}`));
@@ -58,6 +62,8 @@ function findSourceCover(type, entry) {
 }
 
 async function writeVariant(sourcePath, outputPath, size) {
+  if (!FORCE && existsSync(outputPath)) return;
+
   mkdirSync(dirname(outputPath), { recursive: true });
   await sharp(sourcePath)
     .rotate()

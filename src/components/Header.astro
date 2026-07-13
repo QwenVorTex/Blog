@@ -1,5 +1,6 @@
 ---
 import { siteConfig } from '@/config/site';
+import SearchPanel from '@/components/SearchPanel.astro';
 
 const navItems = siteConfig.navigation.primary;
 const dropdownItems = siteConfig.navigation.secondary;
@@ -27,6 +28,22 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
           {item.label}
         </a>
       ))}
+
+      <button
+        class="site-header__link site-header__search-trigger"
+        type="button"
+        aria-haspopup="dialog"
+        aria-controls="site-search-dialog"
+        aria-expanded="false"
+        data-search-trigger
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m16 16 4 4"></path>
+        </svg>
+        <span>搜索</span>
+        <kbd>Ctrl K</kbd>
+      </button>
 
       <div class="site-header__dropdown" data-dropdown-root>
         <button
@@ -92,6 +109,8 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
     </nav>
   </div>
 </header>
+
+<SearchPanel />
 
 <style>
   .site-header {
@@ -195,7 +214,34 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
 
   .site-header__link:active {
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px 0px var(--color-border);
+    box-shadow: var(--shadow-pressed);
+  }
+
+  .site-header__search-trigger {
+    min-height: var(--control-height);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+
+  .site-header__search-trigger svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+  }
+
+  .site-header__search-trigger kbd {
+    padding: 2px var(--space-1);
+    border: var(--border-thin);
+    background: var(--color-paper);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 1;
   }
 
   /* ── Dropdown ── */
